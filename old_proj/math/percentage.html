@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>퍼센트 계산기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Pretendard', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+
+        .calculator {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #1a73e8;
+            margin-bottom: 2rem;
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+
+        .tab {
+            padding: 0.8rem 1.5rem;
+            background: #f1f3f4;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: #1a73e8;
+            color: white;
+        }
+
+        .calc-section {
+            display: none;
+            margin-bottom: 2rem;
+        }
+
+        .calc-section.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .result {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1a73e8;
+        }
+
+        .formula {
+            margin-top: 1rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .calculator {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>퍼센트 계산기</h1>
+
+        <div class="tab-container">
+            <button class="tab active" onclick="showCalc('basic')">기본 계산</button>
+            <button class="tab" onclick="showCalc('discount')">할인/할증</button>
+            <button class="tab" onclick="showCalc('change')">증감률</button>
+            <button class="tab" onclick="showCalc('ratio')">비율</button>
+        </div>
+
+        <!-- 기본 계산 -->
+        <div id="basic" class="calc-section active">
+            <h2>기본 퍼센트 계산</h2>
+            <div class="input-group">
+                <label>숫자</label>
+                <input type="number" id="basic-number" oninput="calculateBasic()">
+            </div>
+            <div class="input-group">
+                <label>퍼센트 (%)</label>
+                <input type="number" id="basic-percent" oninput="calculateBasic()">
+            </div>
+            <div class="result">
+                <div class="result-value" id="basic-result">0</div>
+                <div class="formula" id="basic-formula"></div>
+            </div>
+        </div>
+
+        <!-- 할인/할증 계산 -->
+        <div id="discount" class="calc-section">
+            <h2>할인/할증 계산</h2>
+            <div class="input-group">
+                <label>원래 가격</label>
+                <input type="number" id="discount-original" oninput="calculateDiscount()">
+            </div>
+            <div class="input-group">
+                <label>할인/할증률 (%)</label>
+                <input type="number" id="discount-rate" oninput="calculateDiscount()">
+            </div>
+            <div class="result">
+                <div class="result-value" id="discount-result">0</div>
+                <div class="formula" id="discount-formula"></div>
+            </div>
+        </div>
+
+        <!-- 증감률 계산 -->
+        <div id="change" class="calc-section">
+            <h2>증감률 계산</h2>
+            <div class="input-group">
+                <label>이전 값</label>
+                <input type="number" id="change-before" oninput="calculateChange()">
+            </div>
+            <div class="input-group">
+                <label>현재 값</label>
+                <input type="number" id="change-after" oninput="calculateChange()">
+            </div>
+            <div class="result">
+                <div class="result-value" id="change-result">0%</div>
+                <div class="formula" id="change-formula"></div>
+            </div>
+        </div>
+
+        <!-- 비율 계산 -->
+        <div id="ratio" class="calc-section">
+            <h2>비율 계산</h2>
+            <div class="input-group">
+                <label>부분 값</label>
+                <input type="number" id="ratio-part" oninput="calculateRatio()">
+            </div>
+            <div class="input-group">
+                <label>전체 값</label>
+                <input type="number" id="ratio-total" oninput="calculateRatio()">
+            </div>
+            <div class="result">
+                <div class="result-value" id="ratio-result">0%</div>
+                <div class="formula" id="ratio-formula"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showCalc(type) {
+            // 모든 섹션과 탭 비활성화
+            document.querySelectorAll('.calc-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // 선택된 섹션과 탭 활성화
+            document.getElementById(type).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function formatNumber(number) {
+            return new Intl.NumberFormat('ko-KR').format(number);
+        }
+
+        function calculateBasic() {
+            const number = parseFloat(document.getElementById('basic-number').value) || 0;
+            const percent = parseFloat(document.getElementById('basic-percent').value) || 0;
+            const result = (number * percent) / 100;
+
+            document.getElementById('basic-result').textContent = formatNumber(result);
+            document.getElementById('basic-formula').textContent = 
+                `${formatNumber(number)} × ${percent}% = ${formatNumber(result)}`;
+        }
+
+        function calculateDiscount() {
+            const original = parseFloat(document.getElementById('discount-original').value) || 0;
+            const rate = parseFloat(document.getElementById('discount-rate').value) || 0;
+            const discount = (original * rate) / 100;
+            const result = original - discount;
+
+            document.getElementById('discount-result').textContent = formatNumber(result);
+            document.getElementById('discount-formula').textContent = 
+                `${formatNumber(original)} - (${formatNumber(original)} × ${rate}%) = ${formatNumber(result)}`;
+        }
+
+        function calculateChange() {
+            const before = parseFloat(document.getElementById('change-before').value) || 0;
+            const after = parseFloat(document.getElementById('change-after').value) || 0;
+            
+            if (before === 0) {
+                document.getElementById('change-result').textContent = '-';
+                document.getElementById('change-formula').textContent = '이전 값이 0일 경우 계산할 수 없습니다.';
+                return;
+            }
+
+            const change = ((after - before) / before) * 100;
+            document.getElementById('change-result').textContent = 
+                `${change > 0 ? '+' : ''}${change.toFixed(2)}%`;
+            document.getElementById('change-formula').textContent = 
+                `((${formatNumber(after)} - ${formatNumber(before)}) ÷ ${formatNumber(before)}) × 100`;
+        }
+
+        function calculateRatio() {
+            const part = parseFloat(document.getElementById('ratio-part').value) || 0;
+            const total = parseFloat(document.getElementById('ratio-total').value) || 0;
+            
+            if (total === 0) {
+                document.getElementById('ratio-result').textContent = '-';
+                document.getElementById('ratio-formula').textContent = '전체 값이 0일 경우 계산할 수 없습니다.';
+                return;
+            }
+
+            const ratio = (part / total) * 100;
+            document.getElementById('ratio-result').textContent = `${ratio.toFixed(2)}%`;
+            document.getElementById('ratio-formula').textContent = 
+                `(${formatNumber(part)} ÷ ${formatNumber(total)}) × 100`;
+        }
+    </script>
+</body>
+</html>

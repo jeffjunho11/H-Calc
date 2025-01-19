@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="H-Calculator - 생활, 건강, 금융, 수학 등 다양한 계산기를 한곳에서 편리하게 이용하세요">
+    <title>H-Calculator | 당신을 위한 스마트한 계산기</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1976D2;
+            --primary-light: #e3f2fd;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --background-main: #f0f2f5;
+            --background-card: #fff;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 4px 20px rgba(0,0,0,0.1);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        body {
+            background: var(--background-main);
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .title-section {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--background-card);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+        }
+
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .category-card {
+            background: var(--background-card);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            transition: transform 0.3s ease;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .category-title {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--primary-light);
+        }
+
+        .calculator-list {
+            list-style: none;
+        }
+
+        .calculator-list li {
+            margin-bottom: 1rem;
+        }
+
+        .calculator-list a {
+            text-decoration: none;
+            color: var(--text-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: var(--radius-md);
+            transition: all 0.3s ease;
+        }
+
+        .calculator-list a:hover {
+            background: var(--primary-light);
+            color: var(--primary-color);
+            padding-left: 1.5rem;
+        }
+
+        .calculator-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .calculator-name {
+            font-weight: 500;
+        }
+
+        .calculator-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .arrow {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .calculator-list a:hover .arrow {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .title-section {
+                padding: 1.5rem;
+                margin-bottom: 2rem;
+            }
+
+            .main-title {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+
+            .category-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .category-card {
+                padding: 1.5rem;
+            }
+
+            .category-title {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7456832255424433"
+    crossorigin="anonymous">
+    </script>
+    <meta name="naver-site-verification" content="e6a0660e10964c8208453c6b00f6549a143fffed" />
+</head>
+<body>
+    <div class="container">
+        <div class="title-section">
+            <h1 class="main-title">
+                <span>H-Calculator</span>
+            </h1>
+            <p class="subtitle">당신을 위한 스마트한 계산기</p>
+        </div>
+
+        <div class="category-grid">
+            <!-- 생활 카테고리 -->
+            <div class="category-card">
+                <h2 class="category-title">
+                    <span>🏠</span>
+                    <span>생활 계산기</span>
+                </h2>
+                <ul class="calculator-list">
+                    <li>
+                        <a href="/life/unit.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">단위 변환기</span>
+                                <span class="calculator-desc">길이, 무게, 넓이 등 단위 변환</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/life/percent.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">퍼센트 계산기</span>
+                                <span class="calculator-desc">비율과 백분율 계산</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/life/age.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">만 나이 계산기</span>
+                                <span class="calculator-desc">정확한 만 나이 계산</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/life/date.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">날짜 계산기</span>
+                                <span class="calculator-desc">날짜 간격 및 기간 계산</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/life/ovul.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">배란일 계산기</span>
+                                <span class="calculator-desc">가임기 및 배란일 계산</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/life/business.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">영업일 계산기</span>
+                                <span class="calculator-desc">공휴일을 제외한 영업일 계산</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 건강 카테고리 -->
+            <div class="category-card">
+                <h2 class="category-title">
+                    <span>💪</span>
+                    <span>건강 계산기</span>
+                </h2>
+                <ul class="calculator-list">
+                    <li>
+                        <a href="/health/bmi.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">BMI 계산기</span>
+                                <span class="calculator-desc">체질량지수 계산 및 비만도 체크</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/health/kcal.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">칼로리 계산기</span>
+                                <span class="calculator-desc">일일 필요 칼로리 계산</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 금융 카테고리 -->
+            <div class="category-card">
+                <h2 class="category-title">
+                    <span>💰</span>
+                    <span>금융 계산기</span>
+                </h2>
+                <ul class="calculator-list">
+                    <li>
+                        <a href="/finance/finance.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">금융 계산기</span>
+                                <span class="calculator-desc">종합 금융 계산</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/finance/retire.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">퇴직금 계산기</span>
+                                <span class="calculator-desc">퇴직금 예상액 계산</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/finance/vat.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">부가세 계산기</span>
+                                <span class="calculator-desc">부가가치세 계산</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/finance/salary.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">연봉 계산기</span>
+                                <span class="calculator-desc">실수령액 계산</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/finance/freelancer_tax.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">프리랜서 세금 계산기</span>
+                                <span class="calculator-desc">원천징수액 계산</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/finance/loan.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">대출 이자 계산기</span>
+                                <span class="calculator-desc">이자 및 원리금 계산</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/finance/save.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">적금 계산기</span>
+                                <span class="calculator-desc">적금 만기 금액 계산</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/finance/deposit.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">예금 계산기</span>
+                                <span class="calculator-desc">예금 이자 계산</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/finance/invest.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">투자 수익 계산기</span>
+                                <span class="calculator-desc">투자 수익률 계산</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/finance/compound.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">복리 계산기</span>
+                                <span class="calculator-desc">복리 이자 계산</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 수학 카테고리 -->
+            <div class="category-card">
+                <h2 class="category-title">
+                    <span>🔢</span>
+                    <span>수학 계산기</span>
+                </h2>
+                <ul class="calculator-list">
+                    <li>
+                        <a href="/math/Scientific_Calc.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">공학용 계산기</span>
+                                <span class="calculator-desc">고급 수학 계산</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/math/statistics.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">통계 계산기</span>
+                                <span class="calculator-desc">평균, 분산, 표준편차 등 계산</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/math/matrix.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">행렬 계산기</span>
+                                <span class="calculator-desc">행렬 연산 계산</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 기타 카테고리 -->
+            <div class="category-card">
+                <h2 class="category-title">
+                    <span>🎲</span>
+                    <span>기타 계산기</span>
+                </h2>
+                <ul class="calculator-list">
+                    <li>
+                        <a href="/etc/gpa.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">학점변환기</span>
+                                <span class="calculator-desc">학점 변환 및 계산</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/etc/rand.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">난수 생성기</span>
+                                <span class="calculator-desc">무작위 숫자 생성</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/etc/discharge.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">전역일 계산기</span>
+                                <span class="calculator-desc">군 복무 기간 계산</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/etc/rand_name.html">
+                            <div class="calculator-info">
+                                <span class="calculator-name">랜덤이름 생성기</span>
+                                <span class="calculator-desc">무작위 이름 생성</span>
+                            </div>
+                            <span class="arrow">→</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 카드 호버 효과 개선
+        document.querySelectorAll('.calculator-list a').forEach(link => {
+            link.addEventListener('mouseenter', () => {
+                link.querySelector('.arrow').style.opacity = '1';
+                link.querySelector('.arrow').style.transform = 'translateX(0)';
+            });
+
+            link.addEventListener('mouseleave', () => {
+                link.querySelector('.arrow').style.opacity = '0';
+                link.querySelector('.arrow').style.transform = 'translateX(-10px)';
+            });
+        });
+
+        // 모바일에서 터치 효과
+        if ('ontouchstart' in window) {
+            document.querySelectorAll('.category-card').forEach(card => {
+                card.addEventListener('touchstart', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+
+                card.addEventListener('touchend', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>날짜 계산기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Pretendard', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+
+        .calculator {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #1a73e8;
+            margin-bottom: 2rem;
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            background: #f1f3f4;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: #1a73e8;
+            color: white;
+        }
+
+        .calc-section {
+            display: none;
+            margin-bottom: 2rem;
+        }
+
+        .calc-section.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        input[type="date"] {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .result {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1a73e8;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-detail {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .holiday-list {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #fff;
+            border-radius: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .holiday-item {
+            padding: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .holiday-date {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        @media (max-width: 768px) {
+            .calculator {
+                padding: 1rem;
+            }
+            
+            .tab-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>날짜 계산기</h1>
+
+        <div class="tab-container">
+            <button class="tab active" onclick="showCalc('dday')">D-day</button>
+            <button class="tab" onclick="showCalc('business')">영업일</button>
+            <button class="tab" onclick="showCalc('period')">기간 계산</button>
+        </div>
+
+        <!-- D-day 계산 -->
+        <div id="dday" class="calc-section active">
+            <h2>D-day 계산</h2>
+            <div class="input-group">
+                <label>시작일</label>
+                <input type="date" id="dday-start" onchange="calculateDday()">
+            </div>
+            <div class="input-group">
+                <label>목표일</label>
+                <input type="date" id="dday-end" onchange="calculateDday()">
+            </div>
+            <div class="result">
+                <div class="result-value" id="dday-result">D-day</div>
+                <div class="result-detail" id="dday-detail"></div>
+            </div>
+        </div>
+
+        <!-- 영업일 계산 -->
+        <div id="business" class="calc-section">
+            <h2>영업일 계산</h2>
+            <div class="input-group">
+                <label>시작일</label>
+                <input type="date" id="business-start" onchange="calculateBusinessDays()">
+            </div>
+            <div class="input-group">
+                <label>종료일</label>
+                <input type="date" id="business-end" onchange="calculateBusinessDays()">
+            </div>
+            <div class="result">
+                <div class="result-value" id="business-result">0일</div>
+                <div class="result-detail" id="business-detail"></div>
+                <div class="holiday-list" id="holiday-list"></div>
+            </div>
+        </div>
+
+        <!-- 기간 계산 -->
+        <div id="period" class="calc-section">
+            <h2>기간 계산</h2>
+            <div class="input-group">
+                <label>기준일</label>
+                <input type="date" id="period-base" onchange="calculatePeriod()">
+            </div>
+            <div class="input-group">
+                <label>계산할 일수</label>
+                <input type="number" id="period-days" onchange="calculatePeriod()" placeholder="양수: 이후, 음수: 이전">
+            </div>
+            <div class="result">
+                <div class="result-value" id="period-result">계산 결과</div>
+                <div class="result-detail" id="period-detail"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 공휴일 데이터 (예시)
+        const holidays = {
+            "2025-01-01": "신정",
+            "2025-02-01": "설날",
+            "2025-03-01": "삼일절",
+            "2025-05-05": "어린이날",
+            "2025-05-12": "부처님오신날",
+            "2025-06-06": "현충일",
+            "2025-08-15": "광복절",
+            "2025-09-15": "추석",
+            "2025-10-03": "개천절",
+            "2025-10-09": "한글날",
+            "2025-12-25": "크리스마스"
+        };
+
+        function showCalc(type) {
+            document.querySelectorAll('.calc-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            document.getElementById(type).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function calculateDday() {
+            const startDate = new Date(document.getElementById('dday-start').value);
+            const endDate = new Date(document.getElementById('dday-end').value);
+
+            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return;
+
+            const diffTime = endDate - startDate;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            let ddayText = diffDays === 0 ? "D-day" : 
+                          diffDays > 0 ? `D-${diffDays}` : `D+${Math.abs(diffDays)}`;
+
+            document.getElementById('dday-result').textContent = ddayText;
+            document.getElementById('dday-detail').textContent = 
+                `${startDate.toLocaleDateString()} 부터 ${endDate.toLocaleDateString()} 까지`;
+        }
+
+        function isWeekend(date) {
+            const day = date.getDay();
+            return day === 0 || day === 6;
+        }
+
+        function isHoliday(dateStr) {
+            return holidays[dateStr] !== undefined;
+        }
+
+        function calculateBusinessDays() {
+            const startDate = new Date(document.getElementById('business-start').value);
+            const endDate = new Date(document.getElementById('business-end').value);
+
+            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return;
+
+            let businessDays = 0;
+            let currentDate = new Date(startDate);
+            let holidayList = [];
+
+            while (currentDate <= endDate) {
+                const dateStr = currentDate.toISOString().split('T')[0];
+                
+                if (!isWeekend(currentDate) && !isHoliday(dateStr)) {
+                    businessDays++;
+                } else if (isHoliday(dateStr)) {
+                    holidayList.push(`${dateStr} (${holidays[dateStr]})`);
+                }
+
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            document.getElementById('business-result').textContent = `${businessDays}일`;
+            document.getElementById('business-detail').textContent = 
+                `주말 및 공휴일을 제외한 영업일수`;
+            
+            // 공휴일 목록 표시
+            const holidayListEl = document.getElementById('holiday-list');
+            if (holidayList.length > 0) {
+                holidayListEl.innerHTML = holidayList.map(holiday => 
+                    `<div class="holiday-item"><span class="holiday-date">${holiday}</span></div>`
+                ).join('');
+            } else {
+                holidayListEl.innerHTML = '<div class="holiday-item">해당 기간 내 공휴일이 없습니다.</div>';
+            }
+        }
+
+        function calculatePeriod() {
+            const baseDate = new Date(document.getElementById('period-base').value);
+            const days = parseInt(document.getElementById('period-days').value) || 0;
+
+            if (isNaN(baseDate.getTime())) return;
+
+            const resultDate = new Date(baseDate);
+            resultDate.setDate(resultDate.getDate() + days);
+
+            document.getElementById('period-result').textContent = 
+                resultDate.toLocaleDateString();
+            document.getElementById('period-detail').textContent = 
+                `${baseDate.toLocaleDateString()}부터 ${Math.abs(days)}일 ${days >= 0 ? '이후' : '이전'}`;
+        }
+    </script>
+</body>
+</html>

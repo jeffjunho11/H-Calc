@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>급여 실수령액 계산기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Pretendard', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+
+        .calculator {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1a73e8;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 1rem;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .calculate-btn:hover {
+            background: #1557b0;
+        }
+
+        .result {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #eee;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .result-item.total {
+            background: #e8f0fe;
+            font-weight: bold;
+            color: #1a73e8;
+        }
+
+        .info-text {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .calculator {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>급여 실수령액 계산기</h1>
+        
+        <div class="input-group">
+            <label for="salary-type">급여 유형</label>
+            <select id="salary-type">
+                <option value="yearly">연봉</option>
+                <option value="monthly">월급</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="salary">급여 금액</label>
+            <input type="number" id="salary" placeholder="금액을 입력하세요" min="0">
+        </div>
+
+        <div class="input-group">
+            <label for="tax-type">과세 유형</label>
+            <select id="tax-type">
+                <option value="normal">일반</option>
+                <option value="simple">간이과세</option>
+            </select>
+        </div>
+
+        <button class="calculate-btn" onclick="calculateSalary()">계산하기</button>
+
+        <div class="result" id="result" style="display: none;">
+            <div class="result-item">
+                <span>국민연금 (4.5%)</span>
+                <span id="pension">0원</span>
+            </div>
+            <div class="result-item">
+                <span>건강보험 (3.545%)</span>
+                <span id="health">0원</span>
+            </div>
+            <div class="result-item">
+                <span>장기요양보험 (12.81%)</span>
+                <span id="care">0원</span>
+            </div>
+            <div class="result-item">
+                <span>고용보험 (0.9%)</span>
+                <span id="employment">0원</span>
+            </div>
+            <div class="result-item">
+                <span>소득세</span>
+                <span id="income-tax">0원</span>
+            </div>
+            <div class="result-item">
+                <span>지방소득세 (10%)</span>
+                <span id="local-tax">0원</span>
+            </div>
+            <div class="result-item total">
+                <span>실수령액</span>
+                <span id="total">0원</span>
+            </div>
+        </div>
+
+        <p class="info-text">
+            * 이 계산 결과는 예상 금액으로, 실제 금액과 차이가 있을 수 있습니다.
+            * 기본적인 공제 항목만 포함되어 있으며, 추가 공제 항목은 제외되어 있습니다.
+        </p>
+    </div>
+
+    <script>
+        function formatNumber(number) {
+            return new Intl.NumberFormat('ko-KR').format(Math.round(number)) + '원';
+        }
+
+        function calculateSalary() {
+            const salaryType = document.getElementById('salary-type').value;
+            const taxType = document.getElementById('tax-type').value;
+            let salary = Number(document.getElementById('salary').value);
+
+            // 연봉을 월급으로 변환
+            if (salaryType === 'yearly') {
+                salary = salary / 12;
+            }
+
+            // 각종 보험료 계산
+            const pension = salary * 0.045;  // 국민연금 4.5%
+            const health = salary * 0.03545; // 건강보험 3.545%
+            const care = health * 0.1281;    // 장기요양보험 12.81%
+            const employment = salary * 0.009; // 고용보험 0.9%
+
+            // 과세표준액 계산
+            const taxableIncome = salary - pension - health - care - employment;
+
+            // 소득세 계산 (간단한 버전)
+            let incomeTax = 0;
+            if (taxType === 'simple') {
+                if (taxableIncome <= 1000000) incomeTax = taxableIncome * 0.06;
+                else if (taxableIncome <= 3000000) incomeTax = taxableIncome * 0.15;
+                else if (taxableIncome <= 5000000) incomeTax = taxableIncome * 0.24;
+                else if (taxableIncome <= 10000000) incomeTax = taxableIncome * 0.35;
+                else incomeTax = taxableIncome * 0.38;
+            } else {
+                // 일반 과세의 경우 더 정교한 계산 필요
+                incomeTax = taxableIncome * 0.2; // 간단한 예시
+            }
+
+            // 지방소득세
+            const localTax = incomeTax * 0.1;
+
+            // 실수령액 계산
+            const totalDeduction = pension + health + care + employment + incomeTax + localTax;
+            const netSalary = salary - totalDeduction;
+
+            // 결과 표시
+            document.getElementById('pension').textContent = formatNumber(pension);
+            document.getElementById('health').textContent = formatNumber(health);
+            document.getElementById('care').textContent = formatNumber(care);
+            document.getElementById('employment').textContent = formatNumber(employment);
+            document.getElementById('income-tax').textContent = formatNumber(incomeTax);
+            document.getElementById('local-tax').textContent = formatNumber(localTax);
+            document.getElementById('total').textContent = formatNumber(netSalary);
+            
+            document.getElementById('result').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

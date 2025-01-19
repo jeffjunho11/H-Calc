@@ -1,0 +1,27 @@
+{
+    "site": {
+        "name": "H-Calculator",
+        "title": "H-Calculator | 스마트한 계산의 시작",
+        "description": "당신을 위한 스마트한 계산기"
+    },
+    "languages": {
+        "ar": "العربية",
+        "de": "Deutsch",
+        "en": "English",
+        "es": "Español",
+        "fr": "Français",
+        "ja": "日本語",
+        "ko": "한국어",
+        "pt": "Português",
+        "ru": "Русский",
+        "zh": "中文"
+    },
+    "navigation": {
+        "home": "홈",
+        "life": "생활",
+        "health": "건강",
+        "finance": "금융",
+        "math": "수학",
+        "etc": "기타"
+    }
+}

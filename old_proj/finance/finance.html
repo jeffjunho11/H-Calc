@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>금융 계산기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Pretendard', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+
+        .calculator {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #1a73e8;
+            margin-bottom: 2rem;
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            flex: 1;
+            min-width: 120px;
+            padding: 1rem;
+            background: #f1f3f4;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: #1a73e8;
+            color: white;
+        }
+
+        .calc-section {
+            display: none;
+        }
+
+        .calc-section.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .result {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-item {
+            padding: 1rem;
+            background: white;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .result-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #1a73e8;
+        }
+
+        .amortization-table {
+            width: 100%;
+            margin-top: 1.5rem;
+            border-collapse: collapse;
+        }
+
+        .amortization-table th,
+        .amortization-table td {
+            padding: 0.8rem;
+            text-align: right;
+            border-bottom: 1px solid #eee;
+        }
+
+        .amortization-table th {
+            background: #f8f9fa;
+            font-weight: normal;
+            color: #666;
+        }
+
+        .info-text {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .calculator {
+                padding: 1rem;
+            }
+            
+            .tab-container {
+                flex-direction: column;
+            }
+            
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>금융 계산기</h1>
+
+        <div class="tab-container">
+            <button class="tab active" onclick="showCalc('loan')">대출</button>
+            <button class="tab" onclick="showCalc('savings')">적금</button>
+            <button class="tab" onclick="showCalc('deposit')">예금</button>
+            <button class="tab" onclick="showCalc('investment')">투자 수익</button>
+        </div>
+
+        <!-- 대출 계산기 -->
+        <div id="loan" class="calc-section active">
+            <h2>대출 계산기</h2>
+            <div class="input-group">
+                <label>대출 금액</label>
+                <input type="number" id="loan-amount" placeholder="원" oninput="calculateLoan()">
+            </div>
+            <div class="input-group">
+                <label>연이자율 (%)</label>
+                <input type="number" id="loan-rate" step="0.1" placeholder="%" oninput="calculateLoan()">
+            </div>
+            <div class="input-group">
+                <label>대출 기간</label>
+                <div style="display: flex; gap: 1rem;">
+                    <input type="number" id="loan-term" oninput="calculateLoan()">
+                    <select id="loan-term-unit" onchange="calculateLoan()" style="width: 100px;">
+                        <option value="year">년</option>
+                        <option value="month">개월</option>
+                    </select>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>상환 방식</label>
+                <select id="loan-type" onchange="calculateLoan()">
+                    <option value="equal-principal">원금균등상환</option>
+                    <option value="equal-payment">원리금균등상환</option>
+                    <option value="bullet">만기일시상환</option>
+                </select>
+            </div>
+            <div class="result">
+                <div class="result-grid">
+                    <div class="result-item">
+                        <div class="result-label">월 평균 상환금</div>
+                        <div class="result-value" id="monthly-payment">0원</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">총 이자</div>
+                        <div class="result-value" id="total-interest">0원</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">총 상환금액</div>
+                        <div class="result-value" id="total-payment">0원</div>
+                    </div>
+                </div>
+                <div class="amortization-table-container" style="overflow-x: auto;">
+                    <table class="amortization-table" id="amortization-table">
+                        <thead>
+                            <tr>
+                                <th>회차</th>
+                                <th>납입금액</th>
+                                <th>원금</th>
+                                <th>이자</th>
+                                <th>남은 원금</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 적금 계산기 -->
+        <div id="savings" class="calc-section">
+            <h2>적금 계산기</h2>
+            <div class="input-group">
+                <label>월 납입액</label>
+                <input type="number" id="savings-amount" placeholder="원" oninput="calculateSavings()">
+            </div>
+            <div class="input-group">
+                <label>연이자율 (%)</label>
+                <input type="number" id="savings-rate" step="0.1" placeholder="%" oninput="calculateSavings()">
+            </div>
+            <div class="input-group">
+                <label>적금 기간</label>
+                <div style="display: flex; gap: 1rem;">
+                    <input type="number" id="savings-term" oninput="calculateSavings()">
+                    <select id="savings-term-unit" onchange="calculateSavings()" style="width: 100px;">
+                        <option value="year">년</option>
+                        <option value="month">개월</option>
+                    </select>
+                </div>
+            </div>
+            <div class="result">
+                <div class="result-grid">
+                    <div class="result-item">
+                        <div class="result-label">총 납입금액</div>
+                        <div class="result-value" id="total-savings">0원</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">총 이자</div>
+                        <div class="result-value" id="savings-interest">0원</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">만기 수령액</div>
+                        <div class="result-value" id="savings-total">0원</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 예금 계산기 -->
+        <div id="deposit" class="calc-section">
+            <h2>예금 계산기</h2>
+            <div class="input-group">
+                <label>예치금액</label>
+                <input type="number" id="deposit-amount" placeholder="원" oninput="calculateDeposit()">
+            </div>
+            <div class="input-group">
+                <label>연이자율 (%)</label>
+                <input type="number" id="deposit-rate" step="0.1" placeholder="%" oninput="calculateDeposit()">
+            </div>
+            <div class="input-group">
+                <label>예치기간</label>
+                <div style="display: flex; gap: 1rem;">
+                    <input type="number" id="deposit-term" oninput="calculateDeposit()">
+                    <select id="deposit-term-unit" onchange="calculateDeposit()" style="width: 100px;">
+                        <option value="year">년</option>
+                        <option value="month">개월</option>
+                    </select>
+                </div>
+            </div>
+            <div class="result">
+                <div class="result-grid">
+                    <div class="result-item">
+                        <div class="result-label">총 이자</div>
+                        <div class="result-value" id="deposit-interest">0원</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">세전 수령액</div>
+                        <div class="result-value" id="deposit-before-tax">0원</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">세후 수령액</div>
+                        <div class="result-value" id="deposit-after-tax">0원</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 투자 수익 계산기 -->
+        <div id="investment" class="calc-section">
+            <h2>투자 수익 계산기</h2>
+            <div class="input-group">
+                <label>초기 투자금</label>
+                <input type="number" id="investment-principal" placeholder="원" oninput="calculateInvestment()">
+            </div>
+            <div class="input-group">
+                <label>월 추가 투자금</label>
+                <input type="number" id="investment-monthly" placeholder="원" oninput="calculateInvestment()">
+            </div>
+            <div class="input-group">
+                <label>예상 수익률 (%)</label>
+                <input type="number" id="investment-rate" step="0.1" placeholder="%" oninput="calculateInvestment()">
+            </div>
+            <div class="input-group">
+                <label>투자 기간</label>
+                <div style="display: flex; gap: 1rem;">
+                    <input type="number" id="investment-term" oninput="calculateInvestment()">
+                    <select id="investment-term-unit" onchange="calculateInvestment()" style="width: 100px;">
+                        <option value="year">년</option>
+                        <option value="month">개월</option>
+                    </select>
+                </div>
+            </div>
+            <div class="result">
+                <div class="result-grid">
+                    <div class="result-item">
+                        <div class="result-label">총 투자금액</div>
+                        <div class="result-value" id="total-investment">0원</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">투자 수익</div>
+                        <div class="result-value" id="investment-profit">0원</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">최종 자산</div>
+                        <div class="result-value" id="final-investment">0원</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function formatNumber(number) {
+            return new Intl.NumberFormat('ko-KR').format(Math.round(number)) + '원';
+        }
+
+        function showCalc(type) {
+            document.querySelectorAll('.calc-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            document.getElementById(type).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // 대출 계산
+        function calculateLoan() {
+            const amount = parseFloat(document.getElementById('loan-amount').value) || 0;
+            const rate = parseFloat(document.getElementById('loan-rate').value) || 0;
+            let term = parseInt(document.getElementById('loan-term').value) || 0;
+            const termUnit = document.getElementById('loan-term-unit').value;
+            const type = document.getElementById('loan-type').value;
+
+            // 기간을 월로 변환
+            term = termUnit === 'year' ? term * 12 : term;
+            const monthlyRate = rate / 12 / 100;
+
+            let monthlyPayment = 0;
+            let totalInterest = 0;
+            let totalPayment = 0;
+
+            if (type === 'equal-payment' && amount > 0 && term > 0) {
+                // 원리금균등상환
+                monthlyPayment = amount * monthlyRate * Math.pow(1 + monthlyRate, term) 
+                                / (Math.pow(1 + monthlyRate, term) - 1);
+                total
+    totalPayment = monthlyPayment * term;
+    totalInterest = totalPayment - amount;
+    } else if (type === 'equal-principal' && amount > 0 && term > 0) {
+        // 원금균등상환
+        const monthlyPrincipal = amount / term;
+        let totalMonthlyPayment = 0;
+        
+        for (let i = 0; i < term; i++) {
+            const remainingPrincipal = amount - (monthlyPrincipal * i);
+            const monthlyInterest = remainingPrincipal * monthlyRate;
+            totalMonthlyPayment += monthlyPrincipal + monthlyInterest;
+            totalInterest += monthlyInterest;
+        }
+        
+        monthlyPayment = totalMonthlyPayment / term;
+        totalPayment = amount + totalInterest;
+    } else if (type === 'bullet' && amount > 0 && term > 0) {
+        // 만기일시상환
+        const monthlyInterest = amount * monthlyRate;
+        monthlyPayment = monthlyInterest;
+        totalInterest = monthlyInterest * term;
+        totalPayment = amount + totalInterest;
+    }
+
+    // 결과 표시
+    document.getElementById('monthly-payment').textContent = formatNumber(monthlyPayment);
+    document.getElementById('total-interest').textContent = formatNumber(totalInterest);
+    document.getElementById('total-payment').textContent = formatNumber(totalPayment);
+
+    // 상환 스케줄 생성
+    generateAmortizationSchedule(amount, term, monthlyRate, type);
+}
+
+function generateAmortizationSchedule(principal, term, monthlyRate, type) {
+    const tbody = document.querySelector('#amortization-table tbody');
+    tbody.innerHTML = '';
+    
+    let remainingPrincipal = principal;
+    const monthlyPrincipal = type === 'equal-principal' ? principal / term : 0;
+    
+    for (let month = 1; month <= Math.min(term, 36); month++) {
+        const row = document.createElement('tr');
+        const monthlyInterest = remainingPrincipal * monthlyRate;
+        let payment, principalPayment;
+        
+        if (type === 'equal-payment') {
+            payment = principal * monthlyRate * Math.pow(1 + monthlyRate, term) 
+                     / (Math.pow(1 + monthlyRate, term) - 1);
+            principalPayment = payment - monthlyInterest;
+        } else if (type === 'equal-principal') {
+            principalPayment = monthlyPrincipal;
+            payment = principalPayment + monthlyInterest;
+        } else { // bullet
+            principalPayment = month === term ? principal : 0;
+            payment = monthlyInterest + principalPayment;
+        }
+        
+        remainingPrincipal -= principalPayment;
+        
+        row.innerHTML = `
+            <td>${month}회차</td>
+            <td>${formatNumber(payment)}</td>
+            <td>${formatNumber(principalPayment)}</td>
+            <td>${formatNumber(monthlyInterest)}</td>
+            <td>${formatNumber(remainingPrincipal)}</td>
+        `;
+        tbody.appendChild(row);
+    }
+}
+
+// 적금 계산
+function calculateSavings() {
+    const monthlyAmount = parseFloat(document.getElementById('savings-amount').value) || 0;
+    const rate = parseFloat(document.getElementById('savings-rate').value) || 0;
+    let term = parseInt(document.getElementById('savings-term').value) || 0;
+    const termUnit = document.getElementById('savings-term-unit').value;
+
+    term = termUnit === 'year' ? term * 12 : term;
+    const monthlyRate = rate / 12 / 100;
+
+    const totalDeposit = monthlyAmount * term;
+    let totalInterest = 0;
+
+    // 월복리 이자 계산
+    for (let i = 0; i < term; i++) {
+        totalInterest += monthlyAmount * Math.pow(1 + monthlyRate, term - i) - monthlyAmount;
+    }
+
+    const totalAmount = totalDeposit + totalInterest;
+
+    document.getElementById('total-savings').textContent = formatNumber(totalDeposit);
+    document.getElementById('savings-interest').textContent = formatNumber(totalInterest);
+    document.getElementById('savings-total').textContent = formatNumber(totalAmount);
+}
+
+// 예금 계산
+function calculateDeposit() {
+    const amount = parseFloat(document.getElementById('deposit-amount').value) || 0;
+    const rate = parseFloat(document.getElementById('deposit-rate').value) || 0;
+    let term = parseInt(document.getElementById('deposit-term').value) || 0;
+    const termUnit = document.getElementById('deposit-term-unit').value;
+
+    term = termUnit === 'year' ? term * 12 : term;
+    const monthlyRate = rate / 12 / 100;
+
+    // 복리 이자 계산
+    const totalAmount = amount * Math.pow(1 + monthlyRate, term);
+    const interest = totalAmount - amount;
+    const taxRate = 0.154; // 이자소득세 15.4%
+    const afterTaxAmount = amount + interest * (1 - taxRate);
+
+    document.getElementById('deposit-interest').textContent = formatNumber(interest);
+    document.getElementById('deposit-before-tax').textContent = formatNumber(totalAmount);
+    document.getElementById('deposit-after-tax').textContent = formatNumber(afterTaxAmount);
+}
+
+// 투자 수익 계산
+function calculateInvestment() {
+    const principal = parseFloat(document.getElementById('investment-principal').value) || 0;
+    const monthlyInvestment = parseFloat(document.getElementById('investment-monthly').value) || 0;
+    const rate = parseFloat(document.getElementById('investment-rate').value) || 0;
+    let term = parseInt(document.getElementById('investment-term').value) || 0;
+    const termUnit = document.getElementById('investment-term-unit').value;
+
+    term = termUnit === 'year' ? term * 12 : term;
+    const monthlyRate = rate / 12 / 100;
+
+    let totalAmount = principal * Math.pow(1 + monthlyRate, term);
+    
+    // 월별 추가 투자금의 복리 계산
+    for (let i = 0; i < term; i++) {
+        totalAmount += monthlyInvestment * Math.pow(1 + monthlyRate, term - i);
+    }
+
+    const totalInvestment = principal + (monthlyInvestment * term);
+    const totalProfit = totalAmount - totalInvestment;
+
+    document.getElementById('total-investment').textContent = formatNumber(totalInvestment);
+    document.getElementById('investment-profit').textContent = formatNumber(totalProfit);
+    document.getElementById('final-investment').textContent = formatNumber(totalAmount);
+}
+</script>
+</body>
+</html>

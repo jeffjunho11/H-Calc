@@ -1,0 +1,159 @@
+<header class="h-header">
+    <div class="h-header-container">
+        <a href="/" class="h-logo">
+            <img src="/assets/images/logo/h-calculator-logo.svg" alt="H-Calculator" 
+                 width="40" height="40" class="h-logo-img">
+            <span class="h-logo-text" data-i18n="site.name">H-Calculator</span>
+        </a>
+
+        <nav class="h-nav">
+            <ul class="h-nav-list">
+                <li>
+                    <a href="/life" class="h-nav-link" data-i18n="navigation.life">생활</a>
+                </li>
+                <li>
+                    <a href="/health" class="h-nav-link" data-i18n="navigation.health">건강</a>
+                </li>
+                <li>
+                    <a href="/finance" class="h-nav-link" data-i18n="navigation.finance">금융</a>
+                </li>
+                <li>
+                    <a href="/math" class="h-nav-link" data-i18n="navigation.math">수학</a>
+                </li>
+                <li>
+                    <a href="/etc" class="h-nav-link" data-i18n="navigation.etc">기타</a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="h-header-actions">
+            <button class="h-theme-toggle" aria-label="Toggle theme">
+                <svg class="h-icon h-icon-sun" viewBox="0 0 24 24"><!-- sun icon svg --></svg>
+                <svg class="h-icon h-icon-moon" viewBox="0 0 24 24"><!-- moon icon svg --></svg>
+            </button>
+
+            <div class="h-lang-selector">
+                <button class="h-lang-btn" aria-haspopup="true" aria-expanded="false">
+                    <img src="/assets/images/flags/ko.svg" alt="" class="h-lang-flag" 
+                         width="20" height="20">
+                    <span class="h-lang-name" data-i18n="languages.ko">한국어</span>
+                    <svg class="h-icon h-icon-chevron" viewBox="0 0 24 24">
+                        <!-- chevron icon svg -->
+                    </svg>
+                </button>
+
+                <div class="h-lang-dropdown" role="menu">
+                    <a href="/ar" class="h-lang-option" role="menuitem">
+                        <img src="/assets/images/flags/ar.svg" alt="" width="20" height="20">
+                        <span data-i18n="languages.ar">العربية</span>
+                    </a>
+                    <a href="/de" class="h-lang-option" role="menuitem">
+                        <img src="/assets/images/flags/de.svg" alt="" width="20" height="20">
+                        <span data-i18n="languages.de">Deutsch</span>
+                    </a>
+                    <a href="/en" class="h-lang-option" role="menuitem">
+                        <img src="/assets/images/flags/en.svg" alt="" width="20" height="20">
+                        <span data-i18n="languages.en">English</span>
+                    </a>
+                    <!-- 다른 언어 옵션들 -->
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<style>
+.h-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--h-bg-card);
+    box-shadow: var(--h-shadow-sm);
+    z-index: var(--h-z-header);
+}
+
+.h-header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--h-space-md) var(--h-space-lg);
+}
+
+.h-logo {
+    display: flex;
+    align-items: center;
+    gap: var(--h-space-sm);
+    text-decoration: none;
+}
+
+.h-logo-text {
+    font-size: var(--h-text-xl);
+    font-weight: var(--h-font-bold);
+    color: var(--h-text-primary);
+}
+
+.h-nav-list {
+    display: flex;
+    gap: var(--h-space-lg);
+}
+
+.h-nav-link {
+    color: var(--h-text-primary);
+    text-decoration: none;
+    padding: var(--h-space-sm);
+    transition: color var(--h-transition-fast);
+}
+
+.h-nav-link:hover {
+    color: var(--h-primary);
+}
+
+.h-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--h-space-md);
+}
+
+/* 반응형 스타일 */
+@media (max-width: 768px) {
+    .h-nav {
+        display: none;
+    }
+
+    .h-header-actions {
+        gap: var(--h-space-sm);
+    }
+}
+</style>
+
+<script>
+    // 테마 토글 기능
+    const themeToggle = document.querySelector('.h-theme-toggle');
+    themeToggle.addEventListener('click', () => {
+        document.documentElement.setAttribute('data-theme', 
+            document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
+        );
+    });
+
+    // 언어 선택 드롭다운
+    const langBtn = document.querySelector('.h-lang-btn');
+    const langDropdown = document.querySelector('.h-lang-dropdown');
+
+    langBtn.addEventListener('click', () => {
+        langDropdown.classList.toggle('active');
+        langBtn.setAttribute('aria-expanded', 
+            langBtn.getAttribute('aria-expanded') === 'true' ? 'false' : 'true'
+        );
+    });
+
+    // 드롭다운 외부 클릭 시 닫기
+    document.addEventListener('click', (e) => {
+        if (!langBtn.contains(e.target) && !langDropdown.contains(e.target)) {
+            langDropdown.classList.remove('active');
+            langBtn.setAttribute('aria-expanded', 'false');
+        }
+    });
+</script>

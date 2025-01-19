@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>행렬 계산기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Pretendard', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+
+        .calculator {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #1a73e8;
+            margin-bottom: 1.5rem;
+        }
+
+        .operation-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .operation-btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            background: #f1f3f4;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .operation-btn.active {
+            background: #1a73e8;
+            color: white;
+        }
+
+        .matrix-container {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .matrix-input {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .matrix-size {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .size-input {
+            width: 60px;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .matrix {
+            display: inline-grid;
+            gap: 5px;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .matrix input {
+            width: 60px;
+            height: 40px;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .calculate-btn {
+            padding: 1rem 2rem;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.2s;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .calculate-btn:hover {
+            background: #1557b0;
+        }
+
+        .result {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #eee;
+            text-align: center;
+        }
+
+        .error {
+            color: #dc3545;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .calculator {
+                padding: 1rem;
+            }
+            
+            .matrix-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>행렬 계산기</h1>
+
+        <div class="operation-selector">
+            <button class="operation-btn active" onclick="changeOperation('add')">덧셈</button>
+            <button class="operation-btn" onclick="changeOperation('subtract')">뺄셈</button>
+            <button class="operation-btn" onclick="changeOperation('multiply')">곱셈</button>
+            <button class="operation-btn" onclick="changeOperation('determinant')">행렬식</button>
+            <button class="operation-btn" onclick="changeOperation('inverse')">역행렬</button>
+            <button class="operation-btn" onclick="changeOperation('transpose')">전치행렬</button>
+        </div>
+
+        <div class="matrix-container">
+            <div class="matrix-input">
+                <div class="matrix-size">
+                    <input type="number" class="size-input" id="matrix1-rows" value="2" min="1" max="5" onchange="updateMatrixSize(1)">
+                    ×
+                    <input type="number" class="size-input" id="matrix1-cols" value="2" min="1" max="5" onchange="updateMatrixSize(1)">
+                </div>
+                <div id="matrix1" class="matrix"></div>
+            </div>
+
+            <div id="operation-symbol">+</div>
+
+            <div class="matrix-input" id="matrix2-container">
+                <div class="matrix-size">
+                    <input type="number" class="size-input" id="matrix2-rows" value="2" min="1" max="5" onchange="updateMatrixSize(2)">
+                    ×
+                    <input type="number" class="size-input" id="matrix2-cols" value="2" min="1" max="5" onchange="updateMatrixSize(2)">
+                </div>
+                <div id="matrix2" class="matrix"></div>
+            </div>
+        </div>
+
+        <button class="calculate-btn" onclick="calculate()">계산하기</button>
+
+        <div class="result" id="result" style="display: none;">
+            <h2>결과</h2>
+            <div id="result-matrix" class="matrix"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentOperation = 'add';
+        
+        function createMatrix(rows, cols, containerId) {
+            const container = document.getElementById(containerId);
+            container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+            container.innerHTML = '';
+            
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.value = '0';
+                    input.step = 'any';
+                    container.appendChild(input);
+                }
+            }
+        }
+
+        function getMatrixValues(containerId, rows, cols) {
+            const inputs = document.querySelectorAll(`#${containerId} input`);
+            const matrix = [];
+            for (let i = 0; i < rows; i++) {
+                matrix[i] = [];
+                for (let j = 0; j < cols; j++) {
+                    matrix[i][j] = parseFloat(inputs[i * cols + j].value) || 0;
+                }
+            }
+            return matrix;
+        }
+
+        function updateMatrixSize(matrixNum) {
+            const rows = parseInt(document.getElementById(`matrix${matrixNum}-rows`).value);
+            const cols = parseInt(document.getElementById(`matrix${matrixNum}-cols`).value);
+            createMatrix(rows, cols, `matrix${matrixNum}`);
+        }
+
+        function changeOperation(operation) {
+            currentOperation = operation;
+            document.querySelectorAll('.operation-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            const matrix2Container = document.getElementById('matrix2-container');
+            const operationSymbol = document.getElementById('operation-symbol');
+
+            switch(operation) {
+                case 'add':
+                    operationSymbol.textContent = '+';
+                    matrix2Container.style.display = 'flex';
+                    break;
+                case 'subtract':
+                    operationSymbol.textContent = '-';
+                    matrix2Container.style.display = 'flex';
+                    break;
+                case 'multiply':
+                    operationSymbol.textContent = '×';
+                    matrix2Container.style.display = 'flex';
+                    break;
+                default:
+                    operationSymbol.textContent = '';
+                    matrix2Container.style.display = 'none';
+            }
+        }
+
+        function calculate() {
+            const rows1 = parseInt(document.getElementById('matrix1-rows').value);
+            const cols1 = parseInt(document.getElementById('matrix1-cols').value);
+            const matrix1 = getMatrixValues('matrix1', rows1, cols1);
+
+            let result;
+            switch(currentOperation) {
+                case 'add':
+                    const rows2 = parseInt(document.getElementById('matrix2-rows').value);
+                    const cols2 = parseInt(document.getElementById('matrix2-cols').value);
+                    if (rows1 !== rows2 || cols1 !== cols2) {
+                        alert('행렬의 크기가 같아야 합니다.');
+                        return;
+                    }
+                    const matrix2 = getMatrixValues('matrix2', rows2, cols2);
+                    result = addMatrices(matrix1, matrix2);
+                    break;
+                case 'determinant':
+                    if (rows1 !== cols1) {
+                        alert('정방행렬이어야 합니다.');
+                        return;
+                    }
+                    result = [[calculateDeterminant(matrix1)]];
+                    break;
+                // 다른 연산들 구현...
+            }
+
+            displayResult(result);
+        }
+
+        function addMatrices(matrix1, matrix2) {
+            const result = [];
+            for (let i = 0; i < matrix1.length; i++) {
+                result[i] = [];
+                for (let j = 0; j < matrix1[0].length; j++) {
+                    result[i][j] = matrix1[i][j] + matrix2[i][j];
+                }
+            }
+            return result;
+        }
+
+        function calculateDeterminant(matrix) {
+            if (matrix.length === 1) return matrix[0][0];
+            if (matrix.length === 2) {
+                return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
+            }
+            // 더 큰 행렬의 경우 여인자 전개 방법 사용...
+            return 0; // 구현 필요
+        }
+
+        function displayResult(matrix) {
+            const resultDiv = document.getElementById('result');
+            const resultMatrix = document.getElementById('result-matrix');
+            resultDiv.style.display = 'block';
+            resultMatrix.style.gridTemplateColumns = `repeat(${matrix[0].length}, 1fr)`;
+            resultMatrix.innerHTML = '';
+
+            for (let i = 0; i < matrix.length; i++) {
+                for (let j = 0; j < matrix[0].length; j++) {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.value = matrix[i][j];
+                    input.readOnly = true;
+                    resultMatrix.appendChild(input);
+                }
+            }
+        }
+
+        // 초기 행렬 생성
+        createMatrix(2, 2, 'matrix1');
+        createMatrix(2, 2, 'matrix2');
+    </script>
+</body>
+</html>
