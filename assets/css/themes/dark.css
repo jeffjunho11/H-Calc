@@ -1,0 +1,307 @@
+/* Dark Theme Variables */
+:root {
+    /* Primary Colors */
+    --primary-color: #90CAF9;
+    --primary-light: #BBDEFB;
+    --primary-dark: #64B5F6;
+    --primary-hover: #42A5F5;
+    
+    /* Secondary Colors */
+    --secondary-color: #B0BEC5;
+    --secondary-light: #CFD8DC;
+    --secondary-dark: #90A4AE;
+    
+    /* Background Colors */
+    --background-main: #121212;
+    --background-card: #1E1E1E;
+    --background-input: #2D2D2D;
+    --background-hover: #2A2A2A;
+    --background-active: #333333;
+    
+    /* Text Colors */
+    --text-primary: #FFFFFF;
+    --text-secondary: #B0BEC5;
+    --text-tertiary: #78909C;
+    --text-disabled: #546E7A;
+    --text-inverse: #000000;
+    
+    /* Border Colors */
+    --border-color: #333333;
+    --border-light: #424242;
+    --border-focus: #90CAF9;
+    
+    /* Status Colors */
+    --success-color: #81C784;
+    --warning-color: #FFD54F;
+    --error-color: #E57373;
+    --info-color: #64B5F6;
+    
+    /* Shadow Effects */
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.3);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,0.3);
+    --shadow-xl: 0 20px 25px rgba(0,0,0,0.3);
+    
+    /* Border Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
+    
+    /* Spacing */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    
+    /* Font Sizes */
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-md: 1rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.5rem;
+    --text-3xl: 1.875rem;
+    --text-4xl: 2.25rem;
+    
+    /* Font Weights */
+    --font-light: 300;
+    --font-normal: 400;
+    --font-medium: 500;
+    --font-semibold: 600;
+    --font-bold: 700;
+    
+    /* Line Heights */
+    --leading-none: 1;
+    --leading-tight: 1.25;
+    --leading-normal: 1.5;
+    --leading-loose: 2;
+    
+    /* Transitions */
+    --transition-fast: 150ms;
+    --transition-normal: 250ms;
+    --transition-slow: 350ms;
+    
+    /* Z-index */
+    --z-0: 0;
+    --z-10: 10;
+    --z-20: 20;
+    --z-30: 30;
+    --z-40: 40;
+    --z-50: 50;
+    --z-auto: auto;
+}
+
+/* Component-specific styles */
+.button {
+    background-color: var(--primary-color);
+    color: var(--text-inverse);
+}
+
+.button:hover {
+    background-color: var(--primary-hover);
+}
+
+.input {
+    background-color: var(--background-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.input:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 30%, transparent);
+}
+
+.card {
+    background-color: var(--background-card);
+    box-shadow: var(--shadow-md);
+}
+
+.alert {
+    border-radius: var(--radius-md);
+}
+
+.alert-success {
+    background-color: color-mix(in srgb, var(--success-color) 20%, var(--background-card));
+    border: 1px solid var(--success-color);
+}
+
+.alert-warning {
+    background-color: color-mix(in srgb, var(--warning-color) 20%, var(--background-card));
+    border: 1px solid var(--warning-color);
+}
+
+.alert-error {
+    background-color: color-mix(in srgb, var(--error-color) 20%, var(--background-card));
+    border: 1px solid var(--error-color);
+}
+
+.alert-info {
+    background-color: color-mix(in srgb, var(--info-color) 20%, var(--background-card));
+    border: 1px solid var(--info-color);
+}
+
+/* Navigation */
+.nav-link {
+    color: var(--text-secondary);
+}
+
+.nav-link:hover {
+    color: var(--primary-color);
+    background-color: var(--background-hover);
+}
+
+.nav-link.active {
+    color: var(--primary-color);
+    background-color: var(--background-active);
+}
+
+/* Tables */
+.table {
+    background-color: var(--background-card);
+    color: var(--text-primary);
+}
+
+.table th {
+    background-color: var(--background-hover);
+}
+
+.table tr:hover {
+    background-color: var(--background-hover);
+}
+
+/* Forms */
+.form-label {
+    color: var(--text-primary);
+}
+
+.form-hint {
+    color: var(--text-tertiary);
+}
+
+.form-error {
+    color: var(--error-color);
+}
+
+/* Modal */
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.modal-content {
+    background-color: var(--background-card);
+    box-shadow: var(--shadow-xl);
+}
+
+/* Tooltips */
+.tooltip {
+    background-color: var(--background-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+/* Progress bars */
+.progress-bar {
+    background-color: var(--background-hover);
+}
+
+.progress-bar-fill {
+    background-color: var(--primary-color);
+}
+
+/* Badges */
+.badge {
+    background-color: var(--primary-color);
+    color: var(--text-inverse);
+}
+
+/* Switch */
+.switch {
+    background-color: var(--secondary-dark);
+}
+
+.switch.active {
+    background-color: var(--primary-color);
+}
+
+/* Tabs */
+.tab {
+    color: var(--text-secondary);
+}
+
+.tab.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+/* Cards */
+.card {
+    background-color: var(--background-card);
+    border: 1px solid var(--border-color);
+}
+
+.card-header {
+    border-bottom: 1px solid var(--border-light);
+}
+
+.card-footer {
+    border-top: 1px solid var(--border-light);
+}
+
+/* Dropdown */
+.dropdown-menu {
+    background-color: var(--background-card);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-lg);
+}
+
+.dropdown-item {
+    color: var(--text-primary);
+}
+
+.dropdown-item:hover {
+    background-color: var(--background-hover);
+}
+
+/* Pagination */
+.pagination-item {
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    background-color: var(--background-card);
+}
+
+.pagination-item.active {
+    background-color: var(--primary-color);
+    color: var(--text-inverse);
+    border-color: var(--primary-color);
+}
+
+/* Breadcrumbs */
+.breadcrumb-item {
+    color: var(--text-tertiary);
+}
+
+.breadcrumb-item.active {
+    color: var(--text-primary);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--background-main);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--secondary-dark);
+    border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-color);
+}

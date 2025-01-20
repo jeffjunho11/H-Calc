@@ -1,0 +1,120 @@
+:root {
+    /* Brand Colors */
+    --h-primary: #2E5CFF;
+    --h-primary-light: #E6ECFF;
+    --h-primary-dark: #1E3DB7;
+    --h-secondary: #FF6B2E;
+    --h-secondary-light: #FFE6DC;
+    --h-secondary-dark: #B74B1E;
+
+    /* Neutral Colors */
+    --h-neutral-900: #1A1A1A;
+    --h-neutral-800: #333333;
+    --h-neutral-700: #4D4D4D;
+    --h-neutral-600: #666666;
+    --h-neutral-500: #808080;
+    --h-neutral-400: #999999;
+    --h-neutral-300: #B3B3B3;
+    --h-neutral-200: #CCCCCC;
+    --h-neutral-100: #E6E6E6;
+    --h-neutral-50: #F5F5F5;
+
+    /* Semantic Colors */
+    --h-success: #34C759;
+    --h-warning: #FFB340;
+    --h-error: #FF3B30;
+    --h-info: var(--h-primary);
+
+    /* Background Colors */
+    --h-bg-main: #F8F9FC;
+    --h-bg-card: #FFFFFF;
+    --h-bg-input: #FFFFFF;
+
+    /* Text Colors */
+    --h-text-primary: var(--h-neutral-900);
+    --h-text-secondary: var(--h-neutral-600);
+    --h-text-disabled: var(--h-neutral-400);
+
+    /* Border Colors */
+    --h-border-light: var(--h-neutral-200);
+    --h-border-medium: var(--h-neutral-300);
+    --h-border-dark: var(--h-neutral-400);
+
+    /* Shadow */
+    --h-shadow-xs: 0 1px 3px rgba(46, 92, 255, 0.05);
+    --h-shadow-sm: 0 2px 8px rgba(46, 92, 255, 0.08);
+    --h-shadow-md: 0 4px 16px rgba(46, 92, 255, 0.12);
+    --h-shadow-lg: 0 8px 24px rgba(46, 92, 255, 0.16);
+
+    /* Spacing */
+    --h-space-xs: 0.25rem;  /* 4px */
+    --h-space-sm: 0.5rem;   /* 8px */
+    --h-space-md: 1rem;     /* 16px */
+    --h-space-lg: 1.5rem;   /* 24px */
+    --h-space-xl: 2rem;     /* 32px */
+    --h-space-2xl: 3rem;    /* 48px */
+
+    /* Border Radius */
+    --h-radius-sm: 4px;
+    --h-radius-md: 8px;
+    --h-radius-lg: 12px;
+    --h-radius-xl: 16px;
+    --h-radius-2xl: 24px;
+    --h-radius-full: 9999px;
+
+    /* Font Sizes */
+    --h-text-xs: 0.75rem;   /* 12px */
+    --h-text-sm: 0.875rem;  /* 14px */
+    --h-text-base: 1rem;    /* 16px */
+    --h-text-lg: 1.125rem;  /* 18px */
+    --h-text-xl: 1.25rem;   /* 20px */
+    --h-text-2xl: 1.5rem;   /* 24px */
+    --h-text-3xl: 1.875rem; /* 30px */
+    --h-text-4xl: 2.25rem;  /* 36px */
+
+    /* Font Weights */
+    --h-font-light: 300;
+    --h-font-normal: 400;
+    --h-font-medium: 500;
+    --h-font-semibold: 600;
+    --h-font-bold: 700;
+
+    /* Z-Index */
+    --h-z-dropdown: 1000;
+    --h-z-modal: 1100;
+    --h-z-tooltip: 1200;
+    --h-z-toast: 1300;
+
+    /* Transitions */
+    --h-transition-fast: 150ms;
+    --h-transition-normal: 250ms;
+    --h-transition-slow: 350ms;
+}
+
+/* Dark Theme Variables */
+[data-theme="dark"] {
+    --h-bg-main: #121212;
+    --h-bg-card: #1E1E1E;
+    --h-bg-input: #2D2D2D;
+    
+    --h-text-primary: #FFFFFF;
+    --h-text-secondary: #B3B3B3;
+    --h-text-disabled: #666666;
+    
+    --h-border-light: #333333;
+    --h-border-medium: #404040;
+    --h-border-dark: #4D4D4D;
+
+    /* Shadow Adjustments for Dark Theme */
+    --h-shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.2);
+    --h-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --h-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --h-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* RTL Support */
+[dir="rtl"] {
+    /* RTL specific adjustments */
+    --h-space-start: var(--h-space-end);
+    --h-space-end: var(--h-space-start);
+}

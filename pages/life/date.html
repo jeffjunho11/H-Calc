@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="날짜 계산기 - 두 날짜 사이의 기간, D-day, 기념일을 계산해보세요">
+    <title>날짜 계산기 - H-Calculator</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    
+    <!-- Scripts -->
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script src="../../assets/js/i18n/detector.js"></script>
+    <script type="module">
+        import Sidebar from '../../assets/js/components/Sidebar.js';
+    </script>
+
+    <style>
+        /* 계산기 타입 탭 */
+        .calculator-tabs {
+            display: flex;
+            gap: var(--h-space-sm);
+            margin-bottom: var(--h-space-lg);
+            overflow-x: auto;
+            padding-bottom: var(--h-space-sm);
+        }
+
+        .calculator-tab {
+            padding: var(--h-space-md) var(--h-space-lg);
+            background-color: var(--h-bg-card);
+            border-radius: var(--h-radius-md);
+            color: var(--h-text-secondary);
+            cursor: pointer;
+            transition: all var(--h-transition-fast);
+            white-space: nowrap;
+            border: none;
+        }
+
+        .calculator-tab.active {
+            background-color: var(--h-primary);
+            color: white;
+        }
+
+        /* 날짜 결과 */
+        .date-result {
+            font-size: var(--h-text-3xl);
+            font-weight: var(--h-font-bold);
+            color: var(--h-primary);
+            text-align: center;
+            margin: var(--h-space-lg) 0;
+        }
+
+        /* 기념일 그리드 */
+        .anniversary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--h-space-md);
+            margin-top: var(--h-space-lg);
+        }
+
+        .anniversary-card {
+            background-color: var(--h-bg-card);
+            border-radius: var(--h-radius-md);
+            padding: var(--h-space-md);
+            box-shadow: var(--h-shadow-sm);
+            text-align: center;
+            transition: transform var(--h-transition-fast);
+        }
+
+        .anniversary-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .anniversary-date {
+            font-size: var(--h-text-lg);
+            font-weight: var(--h-font-medium);
+            color: var(--h-primary);
+            margin-bottom: var(--h-space-xs);
+        }
+
+        .anniversary-day {
+            color: var(--h-text-secondary);
+            font-size: var(--h-text-sm);
+        }
+
+        /* 입력 그리드 */
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--h-space-lg);
+        }
+
+        /* 날짜 선택 컨테이너 */
+        .date-select-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--h-space-sm);
+        }
+
+        @media (max-width: 768px) {
+            .calculator-tabs {
+                margin: -0.5rem -1rem 1rem;
+                padding: 0.5rem 1rem;
+            }
+
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .anniversary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <!-- 메인 컨텐츠 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 타이틀 섹션 -->
+            <div class="h-card text-center mb-8">
+                <h1 class="text-4xl text-primary mb-4 flex items-center justify-center gap-3">
+                    <span>날짜 계산기</span>
+                    <span>📅</span>
+                </h1>
+                <p class="text-secondary">
+                    날짜 사이의 기간을 계산하고 특별한 기념일을 찾아보세요
+                </p>
+            </div>
+
+            <!-- 계산기 섹션 -->
+            <div class="h-card">
+                <!-- 계산기 타입 선택 -->
+                <div class="calculator-tabs">
+                    <button class="calculator-tab active" data-type="period">기간 계산</button>
+                    <button class="calculator-tab" data-type="dday">D-day 계산</button>
+                    <button class="calculator-tab" data-type="add">날짜 더하기/빼기</button>
+                    <button class="calculator-tab" data-type="anniversary">기념일 계산</button>
+                </div>
+
+                <!-- 기간 계산 -->
+                <div id="periodCalc" class="calculator-section">
+                    <div class="input-grid">
+                        <div class="h-input-group">
+                            <label class="h-input-label">시작일</label>
+                            <div class="date-select-container">
+                                <select id="startYear" class="h-input" onchange="calculatePeriod()"></select>
+                                <select id="startMonth" class="h-input" onchange="calculatePeriod()"></select>
+                                <select id="startDay" class="h-input" onchange="calculatePeriod()"></select>
+                            </div>
+                        </div>
+                        <div class="h-input-group">
+                            <label class="h-input-label">종료일</label>
+                            <div class="date-select-container">
+                                <select id="endYear" class="h-input" onchange="calculatePeriod()"></select>
+                                <select id="endMonth" class="h-input" onchange="calculatePeriod()"></select>
+                                <select id="endDay" class="h-input" onchange="calculatePeriod()"></select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 mt-4">
+                        <input type="checkbox" id="excludeEndDate" onchange="calculatePeriod()">
+                        <label for="excludeEndDate" class="text-secondary">종료일 제외</label>
+                    </div>
+                    <div class="date-result" id="periodResult"></div>
+                </div>
+
+                <!-- D-day 계산 -->
+                <div id="ddayCalc" class="calculator-section" style="display: none;">
+                    <div class="h-input-group">
+                        <label class="h-input-label">목표일</label>
+                        <div class="date-select-container">
+                            <select id="targetYear" class="h-input" onchange="calculateDday()"></select>
+                            <select id="targetMonth" class="h-input" onchange="calculateDday()"></select>
+                            <select id="targetDay" class="h-input" onchange="calculateDday()"></select>
+                        </div>
+                    </div>
+                    <div class="date-result" id="ddayResult"></div>
+                </div>
+
+                <!-- 날짜 더하기/빼기 -->
+                <div id="addCalc" class="calculator-section" style="display: none;">
+                    <div class="input-grid">
+                        <div class="h-input-group">
+                            <label class="h-input-label">기준일</label>
+                            <div class="date-select-container">
+                                <select id="baseYear" class="h-input" onchange="calculateAddDays()"></select>
+                                <select id="baseMonth" class="h-input" onchange="calculateAddDays()"></select>
+                                <select id="baseDay" class="h-input" onchange="calculateAddDays()"></select>
+                            </div>
+                        </div>
+                        <div class="h-input-group">
+                            <label class="h-input-label">일수</label>
+                            <div class="flex gap-3">
+                                <input type="number" id="dayCount" class="h-input" placeholder="더하거나 뺄 일수" onchange="calculateAddDays()">
+                                <select id="dayDirection" class="h-input w-24" onchange="calculateAddDays()">
+                                    <option value="after">후</option>
+                                    <option value="before">전</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="date-result" id="addResult"></div>
+                </div>
+
+                <!-- 기념일 계산 -->
+                <div id="anniversaryCalc" class="calculator-section" style="display: none;">
+                    <div class="h-input-group">
+                        <label class="h-input-label">시작일</label>
+                        <div class="date-select-container">
+                            <select id="anniYear" class="h-input" onchange="calculateAnniversaries()"></select>
+                            <select id="anniMonth" class="h-input" onchange="calculateAnniversaries()"></select>
+                            <select id="anniDay" class="h-input" onchange="calculateAnniversaries()"></select>
+                        </div>
+                    </div>
+                    <div class="anniversary-grid" id="anniversaryGrid"></div>
+                </div>
+            </div>
+
+            <!-- 설명 섹션 -->
+            <div class="h-card mt-8">
+                <h2 class="text-2xl font-semibold mb-4 text-primary">사용 방법</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3">기간 계산</h3>
+                        <p class="text-secondary">
+                            1. 시작일과 종료일을 선택하세요<br>
+                            2. 종료일 제외 옵션을 설정하세요<br>
+                            3. 두 날짜 사이의 정확한 기간이 표시됩니다
+                        </p>
+                    </div>
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3">D-day 계산</h3>
+                        <p class="text-secondary">
+                            1. 목표일을 선택하세요<br>
+                            2. 오늘부터 목표일까지 남은 일수가 표시됩니다<br>
+                            3. 음수는 이미 지난 날짜를 의미합니다
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 현재 선택된 계산기 타입
+        let currentType = 'period';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDateSelects();
+            setupCalculatorTabs();
+        });
+
+        // 계산기 탭 설정
+        function setupCalculatorTabs() {
+            document.querySelectorAll('.calculator-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelector('.calculator-tab.active').classList.remove('active');
+                    tab.classList.add('active');
+                    switchCalculator(tab.dataset.type);
+                });
+            });
+        }
+
+        // 계산기 전환
+        function switchCalculator(type) {
+            currentType = type;
+            document.querySelectorAll('.calculator-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            document.getElementById(`${type}Calc`).style.display = 'block';
+
+            // 계산기 타입에 따른 초기 계산 실행
+            switch(type) {
+                case 'period': calculatePeriod(); break;
+                case 'dday': calculateDday(); break;
+                case 'add': calculateAddDays(); break;
+                case 'anniversary': calculateAnniversaries(); break;
+            }
+        }
+
+        // 날짜 선택 초기화
+        function initializeDateSelects() {
+            const selects = [
+                ['start', 'end', 'target', 'base', 'anni'].map(prefix => ({
+                    year: document.getElementById(prefix + 'Year'),
+                    month: document.getElementById(prefix + 'Month'),
+                    day: document.getElementById(prefix + 'Day')
+                }))
+            ].flat();
+
+            selects.forEach(select => {
+                if (!select.year) return;
+
+                // 년도 옵션 생성
+                const currentYear = new Date().getFullYear();
+                for (let year = currentYear + 10; year >= currentYear - 100; year--) {
+                    const option = document.createElement('option');
+                    option.value = year;
+                    option.textContent = year + '년';
+                    select.year.appendChild(option);
+                }
+
+                // 월 옵션 생성
+                for (let month = 1; month <= 12; month++) {
+                    const option = document.createElement('option');
+                    option.value = month;
+                    option.textContent = month + '월';
+                    select.month.appendChild(option);
+                }
+
+                // 현재 날짜 설정
+                const today = new Date();
+                select.year.value = today.getFullYear();
+                select.month.value = today.getMonth() + 1;
+
+                // 일 옵션 업데이트 이벤트 리스너 추가
+                select.month.addEventListener('change', () => updateDays(select));
+                select.year.addEventListener('change', () => updateDays(select));
+
+                // 초기 일 옵션 생성
+                updateDays(select);
+                select.day.value = today.getDate();
+            });
+        }
+
+        // 일 옵션 업데이트
+        function updateDays(select) {
+            const year = parseInt(select.year.value);
+            const month = parseInt(select.month.value);
+            const selectedDay = select.day.value;
+
+            // 해당 월의 마지막 날짜 계산
+            const lastDay = new Date(year, month, 0).getDate();
+
+            // 일 옵션 초기화
+            select.day.innerHTML = '';
+            for (let day = 1; day <= lastDay; day++) {
+                const option = document.createElement('option');
+                option.value = day;
+                option.textContent = day + '일';
+                select.day.appendChild(option);
+            }
+
+            // 이전에 선택된 일자가 유효하면 복원
+            if (selectedDay && selectedDay <= lastDay) {
+                select.day.value = selectedDay;
+            }
+        }
+
+        // 기간 계산
+        function calculatePeriod() {
+            const startDate = getDateFromSelects('start');
+            const endDate = getDateFromSelects('end');
+            const excludeEnd = document.getElementById('excludeEndDate').checked;
+
+            if (!startDate || !endDate) return;
+
+            // 날짜 차이 계산
+            const diffTime = endDate - startDate;
+            let days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            if (!excludeEnd) days++;
+
+            // 년, 월, 일로 변환
+            const years = Math.floor(days / 365);
+            const months = Math.floor((days % 365) / 30);
+            const remainingDays = days % 30;
+
+            // 결과 표시
+            let result = '';
+            if (years > 0) result += `${years}년 `;
+            if (months > 0) result += `${months}개월 `;
+            result += `${remainingDays}일`;
+
+            document.getElementById('periodResult').textContent = result;
+        }
+
+        // D-day 계산
+        function calculateDday() {
+            const targetDate = getDateFromSelects('target');
+            if (!targetDate) return;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const diffTime = targetDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            let result;
+            if (diffDays === 0) {
+                result = 'D-day';
+            } else if (diffDays > 0) {
+                result = `D-${diffDays}`;
+            } else {
+                result = `D+${Math.abs(diffDays)}`;
+            }
+
+            document.getElementById('ddayResult').textContent = result;
+        }
+
+        // 날짜 더하기/빼기 계산
+        function calculateAddDays() {
+            const baseDate = getDateFromSelects('base');
+            const dayCount = parseInt(document.getElementById('dayCount').value) || 0;
+            const direction = document.getElementById('dayDirection').value;
+
+            if (!baseDate) return;
+
+            const resultDate = new Date(baseDate);
+            if (direction === 'after') {
+                resultDate.setDate(resultDate.getDate() + dayCount);
+            } else {
+                resultDate.setDate(resultDate.getDate() - dayCount);
+            }
+
+            document.getElementById('addResult').textContent = 
+                resultDate.toLocaleDateString('ko-KR', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric', 
+                    weekday: 'long'
+                });
+        }
+
+        // 기념일 계산
+        function calculateAnniversaries() {
+            const startDate = getDateFromSelects('anni');
+            if (!startDate) return;
+
+            const anniversaries = [
+                { days: 100, name: '100일' },
+                { days: 200, name: '200일' },
+                { days: 300, name: '300일' },
+                { days: 365, name: '1주년' },
+                { days: 500, name: '500일' },
+                { days: 730, name: '2주년' },
+                { days: 1000, name: '1000일' },
+                { days: 1095, name: '3주년' },
+                { days: 1460, name: '4주년' },
+                { days: 1825, name: '5주년' }
+            ];
+
+            const grid = document.getElementById('anniversaryGrid');
+            grid.innerHTML = '';
+
+            anniversaries.forEach(anni => {
+                const anniDate = new Date(startDate);
+                anniDate.setDate(anniDate.getDate() + anni.days);
+
+                const card = document.createElement('div');
+                card.className = 'anniversary-card';
+                card.innerHTML = `
+                    <div class="anniversary-date">${anni.name}</div>
+                    <div class="anniversary-day">${anniDate.toLocaleDateString('ko-KR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        weekday: 'long'
+                    })}</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // 선택된 날짜 가져오기
+        function getDateFromSelects(prefix) {
+            const year = parseInt(document.getElementById(prefix + 'Year').value);
+            const month = parseInt(document.getElementById(prefix + 'Month').value);
+            const day = parseInt(document.getElementById(prefix + 'Day').value);
+
+            if (!year || !month || !day) return null;
+
+            return new Date(year, month - 1, day);
+        }
+    </script>
+</body>
+</html>

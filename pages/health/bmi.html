@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="BMI 계산기 - 체질량지수(BMI) 계산 및 적정 체중 확인">
+    <title data-i18n="calculators.health.bmi.title">BMI 계산기</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    
+    <!-- Scripts -->
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script type="module">
+        import Sidebar from '../../assets/js/components/Sidebar.js';
+        import { initializeI18n, createLanguageSelector } from '../../assets/js/i18n/i18n-config.js';
+    </script>
+
+    <style>
+        /* BMI 계산기 전용 스타일 */
+        .bmi-scale {
+            position: relative;
+            height: 40px;
+            background: linear-gradient(
+                to right,
+                #3498db,  /* 저체중 */
+                #2ecc71,  /* 정상 */
+                #f1c40f,  /* 과체중 */
+                #e67e22,  /* 비만 */
+                #e74c3c   /* 고도비만 */
+            );
+            border-radius: var(--h-radius-full);
+            margin: 2rem 0;
+        }
+
+        .bmi-marker {
+            position: absolute;
+            top: -10px;
+            width: 4px;
+            height: 60px;
+            background-color: var(--h-text-primary);
+            transform: translateX(-50%);
+            transition: left var(--h-transition-normal);
+        }
+
+        .bmi-marker::after {
+            content: attr(data-bmi);
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: var(--h-font-bold);
+            white-space: nowrap;
+        }
+
+        .bmi-categories {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+
+        .bmi-category {
+            text-align: center;
+            flex: 1;
+            padding: 0.5rem;
+            transition: all var(--h-transition-normal);
+        }
+
+        .bmi-category.active {
+            font-weight: var(--h-font-bold);
+            transform: scale(1.1);
+        }
+
+        .bmi-value {
+            font-size: var(--h-text-4xl);
+            font-weight: var(--h-font-bold);
+            color: var(--h-primary);
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .weight-range {
+            text-align: center;
+            margin: 2rem 0;
+            padding: 1rem;
+            background-color: var(--h-primary-light);
+            border-radius: var(--h-radius-lg);
+        }
+
+        .input-with-unit {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-with-unit input {
+            padding-right: 4rem;
+        }
+
+        .input-unit {
+            position: absolute;
+            right: 1rem;
+            color: var(--h-text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .bmi-categories {
+                font-size: var(--h-text-sm);
+            }
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <!-- 메인 컨텐츠 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 타이틀 섹션 -->
+            <div class="h-card text-center mb-8">
+                <h1 class="text-4xl text-primary mb-4 flex items-center justify-center gap-3">
+                    <span data-i18n="calculators.health.bmi.title">BMI 계산기</span>
+                    <span>⚖️</span>
+                </h1>
+                <p class="text-secondary" data-i18n="calculators.health.bmi.description">
+                    체질량지수(BMI)를 계산하고 적정 체중을 확인하세요
+                </p>
+            </div>
+
+            <!-- 계산기 섹션 -->
+            <div class="h-card">
+                <!-- 입력 섹션 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- 키 입력 -->
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.health.bmi.height">키</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="height" class="h-input"
+                                   min="100" max="250" step="0.1"
+                                   data-i18n-placeholder="calculators.health.bmi.enter_height"
+                                   oninput="calculateBMI()">
+                            <span class="input-unit">cm</span>
+                        </div>
+                    </div>
+
+                    <!-- 체중 입력 -->
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.health.bmi.weight">몸무게</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="weight" class="h-input"
+                                   min="20" max="200" step="0.1"
+                                   data-i18n-placeholder="calculators.health.bmi.enter_weight"
+                                   oninput="calculateBMI()">
+                            <span class="input-unit">kg</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 결과 섹션 -->
+                <div id="result" class="mt-8" style="display: none;">
+                    <!-- BMI 값 -->
+                    <div class="bmi-value">
+                        <span id="bmiValue">0</span>
+                        <span class="text-lg text-secondary"> kg/m²</span>
+                    </div>
+
+                    <!-- BMI 상태 -->
+                    <div class="h-card bg-neutral-50 text-center p-4">
+                        <span id="bmiCategory" class="text-xl font-medium"></span>
+                    </div>
+
+                    <!-- BMI 스케일 -->
+                    <div class="bmi-scale">
+                        <div class="bmi-marker" id="bmiMarker" data-bmi="0"></div>
+                    </div>
+
+                    <!-- BMI 카테고리 -->
+                    <div class="bmi-categories">
+                        <div class="bmi-category" data-range="underweight">
+                            <div data-i18n="calculators.health.bmi.categories.underweight">저체중</div>
+                            <div class="text-sm text-secondary">&lt;18.5</div>
+                        </div>
+                        <div class="bmi-category" data-range="normal">
+                            <div data-i18n="calculators.health.bmi.categories.normal">정상</div>
+                            <div class="text-sm text-secondary">18.5-23</div>
+                        </div>
+                        <div class="bmi-category" data-range="overweight">
+                            <div data-i18n="calculators.health.bmi.categories.overweight">과체중</div>
+                            <div class="text-sm text-secondary">23-25</div>
+                        </div>
+                        <div class="bmi-category" data-range="obese">
+                            <div data-i18n="calculators.health.bmi.categories.obese">비만</div>
+                            <div class="text-sm text-secondary">25-30</div>
+                        </div>
+                        <div class="bmi-category" data-range="severe">
+                            <div data-i18n="calculators.health.bmi.categories.severe">고도비만</div>
+                            <div class="text-sm text-secondary">&gt;30</div>
+                        </div>
+                    </div>
+
+                    <!-- 적정 체중 범위 -->
+                    <div class="weight-range">
+                        <h3 class="text-lg font-medium mb-2" data-i18n="calculators.health.bmi.ideal_weight">
+                            적정 체중 범위
+                        </h3>
+                        <p id="weightRange" class="text-xl"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 설명 섹션 -->
+            <div class="h-card mt-8">
+                <h2 class="text-2xl font-semibold mb-4 text-primary" data-i18n="calculators.health.bmi.about">
+                    BMI란?
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.health.bmi.calculation">
+                            계산 방법
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.health.bmi.calculation_description">
+                            BMI = 체중(kg) ÷ (신장(m) × 신장(m))<br>
+                            - 체중은 킬로그램(kg) 단위<br>
+                            - 신장은 미터(m) 단위<br>
+                            - 소수점 첫째 자리까지 계산
+                        </p>
+                    </div>
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.health.bmi.notes">
+                            참고사항
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.health.bmi.notes_description">
+                            - BMI는 체지방을 간접적으로 추정하는 방법입니다<br>
+                            - 근육량이 많은 경우 실제보다 과대 평가될 수 있습니다<br>
+                            - 나이, 성별, 인종에 따라 기준이 다를 수 있습니다<br>
+                            - 전문적인 건강 상담은 의사와 상담하세요
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // i18n 초기화
+        document.addEventListener('DOMContentLoaded', async () => {
+            // i18n 초기화
+            await initializeI18n();
+            
+            // 언어 선택기 추가
+            const langSelectorWrapper = document.createElement('div');
+            langSelectorWrapper.className = 'lang-selector-wrapper';
+            langSelectorWrapper.appendChild(createLanguageSelector());
+            document.body.appendChild(langSelectorWrapper);
+
+            // 사이드바 초기화
+            new Sidebar();
+        });
+
+        // BMI 계산
+        function calculateBMI() {
+            const height = parseFloat(document.getElementById('height').value);
+            const weight = parseFloat(document.getElementById('weight').value);
+
+            if (!height || !weight) {
+                document.getElementById('result').style.display = 'none';
+                return;
+            }
+
+            const bmi = weight / Math.pow(height/100, 2);
+            const roundedBMI = Math.round(bmi * 10) / 10;
+
+            updateBMIDisplay(roundedBMI);
+            updateWeightRange(height);
+        }
+
+        // BMI 표시 업데이트
+        function updateBMIDisplay(bmi) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+
+            // BMI 값 표시
+            document.getElementById('bmiValue').textContent = bmi.toFixed(1);
+
+            // BMI 마커 위치 설정
+            const marker = document.getElementById('bmiMarker');
+            const markerPosition = calculateMarkerPosition(bmi);
+            marker.style.left = `${markerPosition}%`;
+            marker.setAttribute('data-bmi', bmi.toFixed(1));
+
+            // BMI 카테고리 하이라이트
+            updateBMICategory(bmi);
+        }
+
+        // BMI 카테고리 업데이트
+        function updateBMICategory(bmi) {
+            let category = '';
+            document.querySelectorAll('.bmi-category').forEach(cat => {
+                cat.classList.remove('active');
+            });
+
+            if (bmi < 18.5) {
+                category = 'underweight';
+            } else if (bmi < 23) {
+                category = 'normal';
+            } else if (bmi < 25) {
+                category = 'overweight';
+            } else if (bmi < 30) {
+                category = 'obese';
+            } else {
+                category = 'severe';
+            }
+
+            document.querySelector(`.bmi-category[data-range="${category}"]`).classList.add('active');
+            document.getElementById('bmiCategory').textContent = 
+                i18n.t(`calculators.health.bmi.categories.${category}`);
+        }
+
+        // 마커 위치 계산
+        function calculateMarkerPosition(bmi) {
+            // BMI 15-35를 0-100% 범위로 변환
+            let position = ((bmi - 15) / 20) * 100;
+            // 0-100% 범위 내로 제한
+            return Math.max(0, Math.min(100, position));
+        }
+
+        // 적정 체중 범위 계산
+        function updateWeightRange(height) {
+            if (!height) return;
+
+            // 적정 BMI 범위 (18.5-23)에 따른 체중 범위 계산
+            const minWeight = 18.5 * Math.pow(height/100, 2);
+            const maxWeight = 23 * Math.pow(height/100, 2);
+
+            document.getElementById('weightRange').innerHTML = 
+                i18n.t('calculators.health.bmi.weight_range', {
+                    min: minWeight.toFixed(1),
+                    max: maxWeight.toFixed(1)
+                });
+        }
+    </script>
+</body>
+</html>

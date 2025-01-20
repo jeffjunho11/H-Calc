@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="퍼센트 계산기 - 기본 퍼센트 계산, 증감률, 할인율 등 다양한 퍼센트 계산">
+    <title>퍼센트 계산기 - H-Calculator</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/assets/css/variables.css">
+    <link rel="stylesheet" href="/assets/css/base.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    
+    <!-- Scripts -->
+    <script src="/assets/js/i18n/i18n.js"></script>
+    <script src="/assets/js/i18n/detector.js"></script>
+    <script type="module">
+        import Sidebar from '/assets/js/components/Sidebar.js';
+    </script>
+
+    <style>
+        /* 결과 표시 스타일 */
+        .result-value {
+            font-size: var(--h-text-4xl);
+            font-weight: var(--h-font-bold);
+            color: var(--h-primary);
+            margin: var(--h-space-lg) 0;
+        }
+
+        .visual-bar {
+            height: 20px;
+            background-color: var(--h-primary-light);
+            border-radius: var(--h-radius-full);
+            margin: var(--h-space-md) 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .visual-bar-fill {
+            height: 100%;
+            background-color: var(--h-primary);
+            border-radius: var(--h-radius-full);
+            transition: width var(--h-transition-normal);
+        }
+
+        /* 계산기 타입 탭 스타일 */
+        .calculator-types {
+            display: flex;
+            gap: var(--h-space-sm);
+            margin-bottom: var(--h-space-lg);
+            overflow-x: auto;
+            padding-bottom: var(--h-space-sm);
+        }
+
+        .calculator-type {
+            padding: var(--h-space-md) var(--h-space-lg);
+            background-color: var(--h-bg-card);
+            border-radius: var(--h-radius-md);
+            color: var(--h-text-secondary);
+            cursor: pointer;
+            transition: all var(--h-transition-fast);
+            white-space: nowrap;
+            border: none;
+        }
+
+        .calculator-type.active {
+            background-color: var(--h-primary);
+            color: white;
+        }
+
+        /* 입력 그룹 스타일 */
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--h-space-lg);
+            margin-bottom: var(--h-space-xl);
+        }
+
+        /* 예시 스타일 */
+        .examples-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--h-space-md);
+            margin-top: var(--h-space-lg);
+        }
+
+        .example-card {
+            padding: var(--h-space-md);
+            background-color: var(--h-bg-card);
+            border-radius: var(--h-radius-md);
+            box-shadow: var(--h-shadow-sm);
+        }
+
+        .example-title {
+            font-weight: var(--h-font-medium);
+            color: var(--h-primary);
+            margin-bottom: var(--h-space-sm);
+        }
+
+        /* 반응형 조정 */
+        @media (max-width: 768px) {
+            .calculator-types {
+                margin: -0.5rem -1rem 1rem;
+                padding: 0.5rem 1rem;
+            }
+
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <!-- 메인 컨텐츠 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 타이틀 섹션 -->
+            <div class="h-card text-center mb-8">
+                <h1 class="text-4xl text-primary mb-4 flex items-center justify-center gap-3">
+                    <span>퍼센트 계산기</span>
+                    <span>💯</span>
+                </h1>
+                <p class="text-secondary">
+                    기본 퍼센트 계산부터 증감률, 할인율까지 쉽고 정확하게 계산하세요
+                </p>
+            </div>
+
+            <!-- 계산기 섹션 -->
+            <div class="h-card">
+                <!-- 계산기 타입 선택 -->
+                <div class="calculator-types">
+                    <button class="calculator-type active" data-type="basic">기본 계산</button>
+                    <button class="calculator-type" data-type="change">증감률</button>
+                    <button class="calculator-type" data-type="reverse">역산</button>
+                    <button class="calculator-type" data-type="ratio">비율</button>
+                </div>
+
+                <!-- 기본 계산 -->
+                <div id="basicCalc" class="calculator-section">
+                    <div class="input-grid">
+                        <div class="h-input-group">
+                            <label class="h-input-label">값</label>
+                            <input type="number" id="basicValue" class="h-input" placeholder="값을 입력하세요">
+                        </div>
+                        <div class="h-input-group">
+                            <label class="h-input-label">퍼센트</label>
+                            <input type="number" id="basicPercent" class="h-input" placeholder="퍼센트를 입력하세요">
+                        </div>
+                    </div>
+
+                    <div class="result-card text-center">
+                        <div class="result-value" id="basicResult">0</div>
+                        <div class="visual-bar">
+                            <div class="visual-bar-fill" id="basicVisual" style="width: 0%"></div>
+                        </div>
+                        <p class="text-secondary" id="basicExplanation"></p>
+                    </div>
+                </div>
+
+                <!-- 증감률 계산 -->
+                <div id="changeCalc" class="calculator-section" style="display: none;">
+                    <div class="input-grid">
+                        <div class="h-input-group">
+                            <label class="h-input-label">이전 값</label>
+                            <input type="number" id="beforeValue" class="h-input" placeholder="이전 값을 입력하세요">
+                        </div>
+                        <div class="h-input-group">
+                            <label class="h-input-label">현재 값</label>
+                            <input type="number" id="afterValue" class="h-input" placeholder="현재 값을 입력하세요">
+                        </div>
+                    </div>
+
+                    <div class="result-card text-center">
+                        <div class="result-value" id="changeResult">0%</div>
+                        <div class="visual-bar">
+                            <div class="visual-bar-fill" id="changeVisual" style="width: 50%"></div>
+                        </div>
+                        <p class="text-secondary" id="changeExplanation"></p>
+                    </div>
+                </div>
+
+                <!-- 역산 계산 -->
+                <div id="reverseCalc" class="calculator-section" style="display: none;">
+                    <div class="input-grid">
+                        <div class="h-input-group">
+                            <label class="h-input-label">결과값</label>
+                            <input type="number" id="resultValue" class="h-input" placeholder="결과값을 입력하세요">
+                        </div>
+                        <div class="h-input-group">
+                            <label class="h-input-label">퍼센트</label>
+                            <input type="number" id="reversePercent" class="h-input" placeholder="퍼센트를 입력하세요">
+                        </div>
+                    </div>
+
+                    <div class="result-card text-center">
+                        <div class="result-value" id="reverseResult">0</div>
+                        <div class="visual-bar">
+                            <div class="visual-bar-fill" id="reverseVisual" style="width: 0%"></div>
+                        </div>
+                        <p class="text-secondary" id="reverseExplanation"></p>
+                    </div>
+                </div>
+
+                <!-- 비율 계산 -->
+                <div id="ratioCalc" class="calculator-section" style="display: none;">
+                    <div class="input-grid">
+                        <div class="h-input-group">
+                            <label class="h-input-label">부분</label>
+                            <input type="number" id="part" class="h-input" placeholder="부분값을 입력하세요">
+                        </div>
+                        <div class="h-input-group">
+                            <label class="h-input-label">전체</label>
+                            <input type="number" id="total" class="h-input" placeholder="전체값을 입력하세요">
+                        </div>
+                    </div>
+
+                    <div class="result-card text-center">
+                        <div class="result-value" id="ratioResult">0%</div>
+                        <div class="visual-bar">
+                            <div class="visual-bar-fill" id="ratioVisual" style="width: 0%"></div>
+                        </div>
+                        <p class="text-secondary" id="ratioExplanation"></p>
+                    </div>
+                </div>
+
+                <!-- 계산 예시 -->
+                <div class="examples-grid">
+                    <div class="example-card">
+                        <div class="example-title">기본 계산</div>
+                        <p class="text-secondary">100의 20% = 20</p>
+                    </div>
+                    <div class="example-card">
+                        <div class="example-title">증감률</div>
+                        <p class="text-secondary">100 → 120 = +20%</p>
+                    </div>
+                    <div class="example-card">
+                        <div class="example-title">역산</div>
+                        <p class="text-secondary">80이 20% 할인된 값</p>
+                    </div>
+                    <div class="example-card">
+                        <div class="example-title">비율</div>
+                        <p class="text-secondary">30/150 = 20%</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 설명 섹션 -->
+            <div class="h-card mt-8">
+                <h2 class="text-2xl font-semibold mb-4 text-primary">사용 방법</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3">기본 사용법</h3>
+                        <p class="text-secondary">
+                            1. 계산하고 싶은 유형을 선택하세요<br>
+                            2. 필요한 값들을 입력하세요<br>
+                            3. 결과가 자동으로 계산됩니다<br>
+                            4. 시각적 표시를 통해 비율을 직관적으로 확인하세요
+                        </p>
+                    </div>
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3">팁</h3>
+                        <p class="text-secondary">
+                            - 소수점 자리까지 정확한 계산이 가능합니다<br>
+                            - 증감률은 양수와 음수 모두 계산됩니다<br>
+                            - 역산 기능으로 원래 가격도 계산할 수 있습니다<br>
+                            - 시각적 표시로 직관적인 이해가 가능합니다
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 현재 선택된 계산기 타입
+        let currentType = 'basic';
+
+        // DOM이 로드되면 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            // 계산기 타입 버튼 이벤트 리스너
+            document.querySelectorAll('.calculator-type').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelector('.calculator-type.active').classList.remove('active');
+                    btn.classList.add('active');
+                    switchCalculator(btn.dataset.type);
+                });
+            });
+
+            // 입력값 변경 이벤트 리스너
+            setupInputListeners();
+        });
+
+        // 입력값 변경 이벤트 설정
+        function setupInputListeners() {
+            // 기본 계산
+            document.getElementById('basicValue').addEventListener('input', calculateBasic);
+            document.getElementById('basicPercent').addEventListener('input', calculateBasic);
+
+            // 증감률
+            document.getElementById('beforeValue').addEventListener('input', calculateChange);
+            document.getElementById('afterValue').addEventListener('input', calculateChange);
+
+            // 역산
+            document.getElementById('resultValue').addEventListener('input', calculateReverse);
+            document.getElementById('reversePercent').addEventListener('input', calculateReverse);
+
+            // 비율
+            document.getElementById('part').addEventListener('input', calculateRatio);
+            document.getElementById('total').addEventListener('input', calculateRatio);
+        }
+
+        // 계산기 전환
+        function switchCalculator(type) {
+            currentType = type;
+            document.querySelectorAll('.calculator-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            document.getElementById(`${type}Calc`).style.display = 'block';
+        }
+
+        // 기본 퍼센트 계산
+        function calculateBasic() {
+            const value = parseFloat(document.getElementById('basicValue').value);
+            const percent = parseFloat(document.getElementById('basicPercent').value);
+
+            if (isNaN(value) || isNaN(percent)) {
+                document.getElementById('basicResult').textContent = '0';
+                document.getElementById('basicVisual').style.width = '0%';
+                document.getElementById('basicExplanation').textContent = '';
+                return;
+            }
+
+            const result = (value * percent) / 100;
+            document.getElementById('basicResult').textContent = result.toFixed(2);
+            document.getElementById('basicVisual').style.width = `${Math.min(percent, 100)}%`;
+            document.getElementById('basicExplanation').textContent = 
+                `${value.toLocaleString()}의 ${percent}% = ${result.toLocaleString()}`;
+        }
+
+        // 증감률 계산
+        function calculateChange() {
+            const before = parseFloat(document.getElementById('beforeValue').value);
+            const after = parseFloat(document.getElementById('afterValue').value);
+
+            if (isNaN(before) || isNaN(after) || before === 0) {
+                document.getElementById('changeResult').textContent = '0%';
+                document.getElementById('changeVisual').style.width = '50%';
+                document.getElementById('changeExplanation').textContent = '';
+                return;
+            }
+
+            const change = ((after - before) / before) * 100;
+            const visualPercent = 50 + (change / 2); // 50%를 기준으로 증감 표시
+            
+            document.getElementById('changeResult').textContent = `${change > 0 ? '+' : ''}${change.toFixed(2)}%`;
+            document.getElementById('changeVisual').style.width = `${visualPercent}%`;
+            document.getElementById('changeExplanation').textContent = 
+                `${before.toLocaleString()} → ${after.toLocaleString()} (${change > 0 ? '증가' : '감소'})`;
+        }
+
+        // 역산 계산
+        function calculateReverse() {
+            const result = parseFloat(document.getElementById('resultValue').value);
+            const percent = parseFloat(document.getElementById('reversePercent').value);
+
+            if (isNaN(result) || isNaN(percent) || percent === 100) {
+                document.getElementById('reverseResult').textContent = '0';
+                document.getElementById('reverseVisual').style.width = '0%';
+                document.getElementById('reverseExplanation').textContent = '';
+                return;
+            }
+
+            const original = (result * 100) / (100 - percent);
+            document.getElementById('reverseResult').textContent = original.toFixed(2);
+            document.getElementById('reverseVisual').style.width = `${100 - percent}%`;
+            document.getElementById('reverseExplanation').textContent = 
+                `${original.toLocaleString()}의 ${percent}% 할인 = ${result.toLocaleString()}`;
+        }
+
+        // 비율 계산
+        function calculateRatio() {
+            const part = parseFloat(document.getElementById('part').value);
+            const total = parseFloat(document.getElementById('total').value);
+
+            if (isNaN(part) || isNaN(total) || total === 0) {
+                document.getElementById('ratioResult').textContent = '0%';
+                document.getElementById('ratioVisual').style.width = '0%';
+                document.getElementById('ratioExplanation').textContent = '';
+                return;
+            }
+
+            const ratio = (part / total) * 100;
+            document.getElementById('ratioResult').textContent = `${ratio.toFixed(2)}%`;
+            document.getElementById('ratioVisual').style.width = `${ratio}%`;
+            document.getElementById('ratioExplanation').textContent = 
+                `${part.toLocaleString()} ÷ ${total.toLocaleString()} × 100`;
+        }
+    </script>
+</body>
+</html>

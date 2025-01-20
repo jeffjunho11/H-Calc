@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{{description}}">
+    <title>{{title}} | H-Calculator</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/assets/css/base.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="{{title}} | H-Calculator">
+    <meta property="og:description" content="{{description}}">
+    <meta property="og:image" content="https://h-calculator.com/assets/images/og-image.png">
+    <meta property="og:url" content="https://h-calculator.com{{path}}">
+    
+    <!-- Alternate Languages -->
+    <link rel="alternate" hreflang="ar" href="https://h-calculator.com/ar{{path}}">
+    <link rel="alternate" hreflang="de" href="https://h-calculator.com/de{{path}}">
+    <link rel="alternate" hreflang="en" href="https://h-calculator.com/en{{path}}">
+    <link rel="alternate" hreflang="es" href="https://h-calculator.com/es{{path}}">
+    <link rel="alternate" hreflang="fr" href="https://h-calculator.com/fr{{path}}">
+    <link rel="alternate" hreflang="ja" href="https://h-calculator.com/ja{{path}}">
+    <link rel="alternate" hreflang="ko" href="https://h-calculator.com/ko{{path}}">
+    <link rel="alternate" hreflang="pt" href="https://h-calculator.com/pt{{path}}">
+    <link rel="alternate" hreflang="ru" href="https://h-calculator.com/ru{{path}}">
+    <link rel="alternate" hreflang="zh" href="https://h-calculator.com/zh{{path}}">
+</head>
+<body>
+    <!-- Include Header -->
+    <div id="header-container"></div>
+    
+    <main class="h-main">
+        <div class="h-container">
+            <div class="h-calculator-header">
+                <h1 class="h-calculator-title" data-i18n="{{titleKey}}">{{title}}</h1>
+                <p class="h-calculator-description" data-i18n="{{descriptionKey}}">{{description}}</p>
+            </div>
+
+            <div class="h-calculator-content">
+                <!-- Calculator specific content will be injected here -->
+                <div id="calculator-container"></div>
+            </div>
+
+            <div class="h-calculator-info">
+                <h2 class="h-info-title" data-i18n="common.howToCalculate">계산 방법</h2>
+                <div class="h-info-content" data-i18n="{{calculatorInfo}}">
+                    <!-- Calculator specific information -->
+                </div>
+            </div>
+
+            <div class="h-related-calculators">
+                <h2 class="h-related-title" data-i18n="common.relatedCalculators">관련 계산기</h2>
+                <div class="h-calculator-grid">
+                    <!-- Related calculators will be dynamically inserted -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Include Footer -->
+    <div id="footer-container"></div>
+
+    <!-- Scripts -->
+    <script src="/assets/js/i18n/i18n.js"></script>
+    <script>
+        // Load header and footer
+        fetch('/components/Header/index.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('header-container').innerHTML = html;
+            });
+
+        fetch('/components/Footer/index.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('footer-container').innerHTML = html;
+            });
+
+        // Initialize i18n
+        const i18n = new I18n();
+        i18n.init();
+
+        // Calculator specific initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            // Calculator specific JavaScript will be injected here
+            {{calculatorScript}}
+        });
+    </script>
+
+    <style>
+        .h-main {
+            padding-top: var(--h-space-header);
+            min-height: calc(100vh - var(--h-space-footer));
+        }
+
+        .h-calculator-header {
+            text-align: center;
+            margin-bottom: var(--h-space-2xl);
+        }
+
+        .h-calculator-title {
+            font-size: var(--h-text-4xl);
+            color: var(--h-text-primary);
+            margin-bottom: var(--h-space-md);
+        }
+
+        .h-calculator-description {
+            color: var(--h-text-secondary);
+            font-size: var(--h-text-lg);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .h-calculator-content {
+            background-color: var(--h-bg-card);
+            border-radius: var(--h-radius-lg);
+            padding: var(--h-space-xl);
+            box-shadow: var(--h-shadow-md);
+            margin-bottom: var(--h-space-2xl);
+        }
+
+        .h-calculator-info {
+            margin-bottom: var(--h-space-2xl);
+        }
+
+        .h-info-title {
+            font-size: var(--h-text-2xl);
+            color: var(--h-text-primary);
+            margin-bottom: var(--h-space-lg);
+        }
+
+        .h-calculator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--h-space-lg);
+        }
+
+        @media (max-width: 768px) {
+            .h-calculator-header {
+                margin-bottom: var(--h-space-xl);
+            }
+
+            .h-calculator-title {
+                font-size: var(--h-text-3xl);
+            }
+
+            .h-calculator-content {
+                padding: var(--h-space-lg);
+            }
+        }
+    </style>
+</body>
+</html>

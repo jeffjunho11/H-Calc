@@ -1,0 +1,130 @@
+@import 'variables.css';
+
+/* Reset & Base Styles */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 16px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+}
+
+body {
+    background-color: var(--h-bg-main);
+    color: var(--h-text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--h-text-primary);
+    line-height: 1.2;
+    margin-bottom: var(--h-space-md);
+}
+
+h1 { font-size: var(--h-text-4xl); }
+h2 { font-size: var(--h-text-3xl); }
+h3 { font-size: var(--h-text-2xl); }
+h4 { font-size: var(--h-text-xl); }
+h5 { font-size: var(--h-text-lg); }
+h6 { font-size: var(--h-text-base); }
+
+/* Links */
+a {
+    color: var(--h-primary);
+    text-decoration: none;
+    transition: color var(--h-transition-fast);
+}
+
+a:hover {
+    color: var(--h-primary-dark);
+}
+
+/* Forms */
+input, select, textarea, button {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+}
+
+input, select, textarea {
+    background-color: var(--h-bg-input);
+    border: 1px solid var(--h-border-medium);
+    border-radius: var(--h-radius-md);
+    padding: var(--h-space-sm) var(--h-space-md);
+    color: var(--h-text-primary);
+    transition: all var(--h-transition-fast);
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--h-primary);
+    box-shadow: 0 0 0 3px var(--h-primary-light);
+}
+
+/* Buttons */
+button {
+    cursor: pointer;
+    border: none;
+    background: none;
+    padding: 0;
+}
+
+/* Lists */
+ul, ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Images */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Container */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--h-space-md);
+}
+
+/* Grid System */
+.grid {
+    display: grid;
+    gap: var(--h-space-md);
+}
+
+/* Flexbox Utilities */
+.flex {
+    display: flex;
+}
+
+.flex-col {
+    flex-direction: column;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+/* Spacing Utilities */
+.m-0 { margin: 0; }
+.p-0 { padding: 0; }
+
+/* ... 더 많은 유틸리티 클래스들 ... */

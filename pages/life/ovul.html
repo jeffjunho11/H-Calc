@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="배란일 계산기 - 생리주기를 기반으로 배란일과 가임기를 계산합니다">
+    <title data-i18n="calculators.life.ovulation.title">배란일 계산기</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    
+    <!-- Scripts -->
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script type="module">
+        import Sidebar from '../../assets/js/components/Sidebar.js';
+        import { initializeI18n, createLanguageSelector } from '../../assets/js/i18n/i18n-config.js';
+
+        // DOM이 로드되면 초기화
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 1. i18n 초기화
+            await initializeI18n();
+
+            // 2. 언어 선택기 추가
+            const langSelectorWrapper = document.createElement('div');
+            langSelectorWrapper.className = 'lang-selector-wrapper';
+            langSelectorWrapper.appendChild(createLanguageSelector());
+            document.body.appendChild(langSelectorWrapper);
+
+            // 3. 사이드바 초기화
+            new Sidebar();
+
+            // 4. 달력 초기화 등 나머지 기능 초기화
+            initializeDateSelects();
+            updateCalendar();
+        });
+    </script>
+
+    <style>
+        /* 기존 스타일 유지 */
+        ...
+
+        /* 언어 선택기 스타일 */
+        .lang-selector-wrapper {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: var(--h-z-modal);
+        }
+
+        .h-lang-selector select {
+            padding: 0.5rem 2rem 0.5rem 1rem;
+            background-color: var(--h-bg-card);
+            border: 1px solid var(--h-border-medium);
+            border-radius: var(--h-radius-md);
+            font-size: var(--h-text-sm);
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='currentColor' viewBox='0 0 12 12'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 0.75rem;
+        }
+
+        .h-lang-selector select:hover {
+            border-color: var(--h-primary);
+        }
+
+        .h-lang-selector select:focus {
+            outline: none;
+            border-color: var(--h-primary);
+            box-shadow: 0 0 0 3px var(--h-primary-light);
+        }
+
+        @media (max-width: 768px) {
+            .lang-selector-wrapper {
+                top: auto;
+                bottom: 1rem;
+                right: 1rem;
+            }
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <!-- 메인 컨텐츠 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 타이틀 섹션 -->
+            <div class="h-card text-center mb-8">
+                <h1 class="text-4xl text-primary mb-4 flex items-center justify-center gap-3">
+                    <span data-i18n="calculators.life.ovulation.title">배란일 계산기</span>
+                    <span>🌸</span>
+                </h1>
+                <p class="text-secondary" data-i18n="calculators.life.ovulation.description">
+                    생리주기를 기반으로 배란일과 가임기를 계산해드립니다
+                </p>
+            </div>
+
+            <!-- 계산기 섹션 -->
+            <div class="h-card">
+                <!-- 입력 섹션 -->
+                <div class="input-section">
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.life.ovulation.last_period">
+                            마지막 생리 시작일
+                        </label>
+                        <div class="flex gap-3">
+                            <select id="periodYear" class="h-input" data-i18n-title="common.year">
+                                <option value="" data-i18n="common.year">년도</option>
+                            </select>
+                            <select id="periodMonth" class="h-input" data-i18n-title="common.month">
+                                <option value="" data-i18n="common.month">월</option>
+                            </select>
+                            <select id="periodDay" class="h-input" data-i18n-title="common.day">
+                                <option value="" data-i18n="common.day">일</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.life.ovulation.cycle_length">
+                            평균 생리주기 (일)
+                        </label>
+                        <input type="number" id="cycleDays" class="h-input" 
+                               value="28" min="21" max="35" 
+                               data-i18n-placeholder="calculators.life.ovulation.enter_cycle_length">
+                        <p class="text-secondary text-sm mt-1" data-i18n="calculators.life.ovulation.cycle_note">
+                            일반적으로 28일입니다
+                        </p>
+                    </div>
+
+                    <div class="h-input-group">
+                        <button class="h-btn h-btn-primary w-full" onclick="calculateDates()" 
+                                data-i18n="common.calculate">
+                            계산하기
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 결과 섹션 -->
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="result-title" data-i18n="calculators.life.ovulation.next_period">
+                            다음 생리 예정일
+                        </div>
+                        <div class="result-value" id="nextPeriod"></div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-title" data-i18n="calculators.life.ovulation.ovulation_date">
+                            예상 배란일
+                        </div>
+                        <div class="result-value" id="ovulationDate"></div>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-title" data-i18n="calculators.life.ovulation.fertile_period">
+                            가임기
+                        </div>
+                        <div class="result-value" id="fertilePeriod"></div>
+                    </div>
+                </div>
+
+                <!-- 달력 -->
+                <div class="calendar-section">
+                    <!-- ... (달력 부분은 이전과 동일) ... -->
+                </div>
+
+                <!-- 범례 -->
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #FFE4E4;"></div>
+                        <span data-i18n="calculators.life.ovulation.calendar.period">생리 예정일</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #E3F2FD;"></div>
+                        <span data-i18n="calculators.life.ovulation.calendar.ovulation">배란일</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #E8F5E9;"></div>
+                        <span data-i18n="calculators.life.ovulation.calendar.fertile">가임기</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 설명 섹션 -->
+            <div class="h-card mt-8">
+                <h2 class="text-2xl font-semibold mb-4 text-primary" data-i18n="common.how_to_use">
+                    상세 설명
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.life.ovulation.calculation_method">
+                            배란일 계산 방법
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.life.ovulation.calculation_description">
+                            - 일반적으로 다음 생리 시작일 14일 전에 배란이 일어납니다<br>
+                            - 배란일 전후 5일이 가임기에 해당됩니다<br>
+                            - 배란일에 가장 임신 가능성이 높습니다<br>
+                            - 생리주기는 개인차가 있을 수 있습니다
+                        </p>
+                    </div>
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.life.ovulation.notes">
+                            참고사항
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.life.ovulation.notes_description">
+                            - 계산 결과는 예측값으로 실제와 다를 수 있습니다<br>
+                            - 불규칙한 생리주기의 경우 정확도가 낮아질 수 있습니다<br>
+                            - 중요한 판단이 필요할 경우 전문의와 상담하세요<br>
+                            - 개인별 생리주기를 기록하면 더 정확한 예측이 가능합니다
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script>
+        // 현재 표시중인 달력의 년월
+        let currentDate = new Date();
+        let selectedPeriodDate = null;
+        let cycleDays = 28;
+
+        // 날짜 선택 초기화
+        function initializeDateSelects() {
+            const yearSelect = document.getElementById('periodYear');
+            const monthSelect = document.getElementById('periodMonth');
+            const daySelect = document.getElementById('periodDay');
+
+            // 년도 옵션 (현재 년도 ±2년)
+            const currentYear = new Date().getFullYear();
+            for (let year = currentYear - 2; year <= currentYear + 2; year++) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = i18n.t('common.year_format', { year: year });
+                yearSelect.appendChild(option);
+            }
+
+            // 월 옵션
+            for (let month = 1; month <= 12; month++) {
+                const option = document.createElement('option');
+                option.value = month;
+                option.textContent = i18n.t('common.month_format', { month: month });
+                monthSelect.appendChild(option);
+            }
+
+            // 일 옵션
+            updateDaySelect();
+
+            // 이벤트 리스너 추가
+            monthSelect.addEventListener('change', updateDaySelect);
+            yearSelect.addEventListener('change', updateDaySelect);
+
+            // 현재 날짜 설정
+            const today = new Date();
+            yearSelect.value = today.getFullYear();
+            monthSelect.value = today.getMonth() + 1;
+            daySelect.value = today.getDate();
+        }
+
+        // 날짜 선택 업데이트
+        function updateDaySelect() {
+            const yearSelect = document.getElementById('periodYear');
+            const monthSelect = document.getElementById('periodMonth');
+            const daySelect = document.getElementById('periodDay');
+            const selectedDay = daySelect.value;
+
+            const year = parseInt(yearSelect.value);
+            const month = parseInt(monthSelect.value);
+
+            // 해당 월의 마지막 날짜 계산
+            const lastDay = new Date(year, month, 0).getDate();
+
+            // 일 옵션 초기화
+            daySelect.innerHTML = `<option value="">${i18n.t('common.day')}</option>`;
+
+            // 일 옵션 생성
+            for (let day = 1; day <= lastDay; day++) {
+                const option = document.createElement('option');
+                option.value = day;
+                option.textContent = i18n.t('common.day_format', { day: day });
+                daySelect.appendChild(option);
+            }
+
+            // 이전에 선택된 일자가 유효하면 복원
+            if (selectedDay && selectedDay <= lastDay) {
+                daySelect.value = selectedDay;
+            }
+        }
+
+        // 날짜 계산
+        function calculateDates() {
+            // 입력값 가져오기
+            const year = parseInt(document.getElementById('periodYear').value);
+            const month = parseInt(document.getElementById('periodMonth').value);
+            const day = parseInt(document.getElementById('periodDay').value);
+            cycleDays = parseInt(document.getElementById('cycleDays').value) || 28;
+
+            if (!year || !month || !day || cycleDays < 21 || cycleDays > 35) {
+                alert(i18n.t('common.validation.invalid_input'));
+                return;
+            }
+
+            // 생리 시작일 설정
+            selectedPeriodDate = new Date(year, month - 1, day);
+            
+            // 계산 및 결과 표시
+            updateResults();
+            updateCalendar();
+        }
+
+        // 결과 업데이트
+        function updateResults() {
+            if (!selectedPeriodDate) return;
+
+            // 다음 생리 예정일
+            const nextPeriod = new Date(selectedPeriodDate);
+            nextPeriod.setDate(nextPeriod.getDate() + cycleDays);
+
+            // 배란일 (다음 생리 14일 전)
+            const ovulation = new Date(nextPeriod);
+            ovulation.setDate(ovulation.getDate() - 14);
+
+            // 가임기 (배란일 전후 5일)
+            const fertileStart = new Date(ovulation);
+            fertileStart.setDate(fertileStart.getDate() - 5);
+            const fertileEnd = new Date(ovulation);
+            fertileEnd.setDate(fertileEnd.getDate() + 5);
+
+            // 결과 표시
+            document.getElementById('nextPeriod').textContent = formatDate(nextPeriod);
+            document.getElementById('ovulationDate').textContent = formatDate(ovulation);
+            document.getElementById('fertilePeriod').textContent = 
+                i18n.t('calculators.life.ovulation.fertile_period_range', {
+                    start: formatDate(fertileStart),
+                    end: formatDate(fertileEnd)
+                });
+        }
+
+        // 달력 업데이트
+        function updateCalendar() {
+            const calendarDays = document.getElementById('calendarDays');
+            const monthLabel = document.getElementById('currentMonth');
+
+            // 달력 제목 업데이트
+            monthLabel.textContent = formatYearMonth(currentDate);
+
+            // 달력 날짜 계산
+            const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+            const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+            const startingDay = firstDay.getDay();
+
+            // 달력 초기화
+            calendarDays.innerHTML = '';
+
+            // 이전 달의 날짜 추가
+            for (let i = 0; i < startingDay; i++) {
+                const prevDate = new Date(firstDay);
+                prevDate.setDate(prevDate.getDate() - (startingDay - i));
+                addCalendarDay(calendarDays, prevDate, true);
+            }
+
+            // 현재 달의 날짜 추가
+            for (let i = 1; i <= lastDay.getDate(); i++) {
+                const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), i);
+                addCalendarDay(calendarDays, date, false);
+            }
+
+            // 다음 달의 날짜 추가
+            const remainingDays = 42 - (startingDay + lastDay.getDate());
+            for (let i = 1; i <= remainingDays; i++) {
+                const nextDate = new Date(lastDay);
+                nextDate.setDate(nextDate.getDate() + i);
+                addCalendarDay(calendarDays, nextDate, true);
+            }
+        }
+
+        // 달력에 날짜 추가
+        function addCalendarDay(container, date, outsideMonth) {
+            const day = document.createElement('div');
+            day.className = 'calendar-day';
+            if (outsideMonth) day.classList.add('outside-month');
+
+            // 오늘 날짜 표시
+            const today = new Date();
+            if (isSameDate(date, today)) {
+                day.classList.add('today');
+                day.title = i18n.t('common.today');
+            }
+
+            // 선택된 생리일이 있는 경우 관련 날짜 표시
+            if (selectedPeriodDate) {
+                // 생리 예정일 표시
+                let nextPeriod = new Date(selectedPeriodDate);
+                while (nextPeriod < date) {
+                    nextPeriod.setDate(nextPeriod.getDate() + cycleDays);
+                }
+                if (isWithinDays(date, nextPeriod, 0, 5)) {
+                    day.classList.add('period');
+                    day.title = i18n.t('calculators.life.ovulation.calendar.period');
+                }
+
+                // 배란일 표시
+                const ovulation = new Date(nextPeriod);
+                ovulation.setDate(ovulation.getDate() - 14);
+                if (isSameDate(date, ovulation)) {
+                    day.classList.add('ovulation');
+                    day.title = i18n.t('calculators.life.ovulation.calendar.ovulation');
+                }
+
+                // 가임기 표시
+                if (isWithinDays(date, ovulation, -5, 5)) {
+                    day.classList.add('fertile');
+                    if (!isSameDate(date, ovulation)) {
+                        day.title = i18n.t('calculators.life.ovulation.calendar.fertile');
+                    }
+                }
+            }
+
+            day.textContent = date.getDate();
+            container.appendChild(day);
+        }
+
+        // 날짜 형식화
+        function formatDate(date) {
+            return new Intl.DateTimeFormat(i18n.language, { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                weekday: 'long'
+            }).format(date);
+        }
+
+        // 년월 형식화
+        function formatYearMonth(date) {
+            return new Intl.DateTimeFormat(i18n.language, { 
+                year: 'numeric', 
+                month: 'long'
+            }).format(date);
+        }
+
+        // 두 날짜가 같은지 확인
+        function isSameDate(date1, date2) {
+            return date1.getFullYear() === date2.getFullYear() &&
+                   date1.getMonth() === date2.getMonth() &&
+                   date1.getDate() === date2.getDate();
+        }
+
+        // 특정 날짜가 기준일로부터 지정된 일수 범위 내에 있는지 확인
+        function isWithinDays(date, baseDate, startDays, endDays) {
+            const diff = Math.floor((date - baseDate) / (1000 * 60 * 60 * 24));
+            return diff >= startDays && diff <= endDays;
+        }
+
+        // 이전 달로 이동
+        function prevMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            updateCalendar();
+        }
+
+        // 다음 달로 이동
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            updateCalendar();
+        }
+    </script>
+</body>
+</html>

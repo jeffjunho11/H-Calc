@@ -1,0 +1,299 @@
+/* Light Theme Variables */
+:root {
+    /* Primary Colors */
+    --primary-color: #1976D2;
+    --primary-light: #64B5F6;
+    --primary-dark: #1565C0;
+    --primary-hover: #1E88E5;
+    
+    /* Secondary Colors */
+    --secondary-color: #757575;
+    --secondary-light: #BDBDBD;
+    --secondary-dark: #424242;
+    
+    /* Background Colors */
+    --background-main: #f0f2f5;
+    --background-card: #ffffff;
+    --background-input: #ffffff;
+    --background-hover: #f5f5f5;
+    --background-active: #e3f2fd;
+    
+    /* Text Colors */
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --text-tertiary: #999999;
+    --text-disabled: #BDBDBD;
+    --text-inverse: #ffffff;
+    
+    /* Border Colors */
+    --border-color: #e0e0e0;
+    --border-light: #f0f0f0;
+    --border-focus: #1976D2;
+    
+    /* Status Colors */
+    --success-color: #4CAF50;
+    --warning-color: #FFC107;
+    --error-color: #f44336;
+    --info-color: #2196F3;
+    
+    /* Shadow Effects */
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+    --shadow-xl: 0 20px 25px rgba(0,0,0,0.1);
+    
+    /* Border Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
+    
+    /* Spacing */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    
+    /* Font Sizes */
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-md: 1rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.5rem;
+    --text-3xl: 1.875rem;
+    --text-4xl: 2.25rem;
+    
+    /* Font Weights */
+    --font-light: 300;
+    --font-normal: 400;
+    --font-medium: 500;
+    --font-semibold: 600;
+    --font-bold: 700;
+    
+    /* Line Heights */
+    --leading-none: 1;
+    --leading-tight: 1.25;
+    --leading-normal: 1.5;
+    --leading-loose: 2;
+    
+    /* Transitions */
+    --transition-fast: 150ms;
+    --transition-normal: 250ms;
+    --transition-slow: 350ms;
+    
+    /* Z-index */
+    --z-0: 0;
+    --z-10: 10;
+    --z-20: 20;
+    --z-30: 30;
+    --z-40: 40;
+    --z-50: 50;
+    --z-auto: auto;
+}
+
+/* Component-specific styles */
+.button {
+    background-color: var(--primary-color);
+    color: var(--text-inverse);
+}
+
+.button:hover {
+    background-color: var(--primary-hover);
+}
+
+.input {
+    background-color: var(--background-input);
+    border: 1px solid var(--border-color);
+}
+
+.input:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.card {
+    background-color: var(--background-card);
+    box-shadow: var(--shadow-md);
+}
+
+.alert {
+    border-radius: var(--radius-md);
+}
+
+.alert-success {
+    background-color: color-mix(in srgb, var(--success-color) 10%, white);
+    border: 1px solid var(--success-color);
+}
+
+.alert-warning {
+    background-color: color-mix(in srgb, var(--warning-color) 10%, white);
+    border: 1px solid var(--warning-color);
+}
+
+.alert-error {
+    background-color: color-mix(in srgb, var(--error-color) 10%, white);
+    border: 1px solid var(--error-color);
+}
+
+.alert-info {
+    background-color: color-mix(in srgb, var(--info-color) 10%, white);
+    border: 1px solid var(--info-color);
+}
+
+/* Navigation */
+.nav-link {
+    color: var(--text-primary);
+}
+
+.nav-link:hover {
+    color: var(--primary-color);
+    background-color: var(--background-hover);
+}
+
+.nav-link.active {
+    color: var(--primary-color);
+    background-color: var(--background-active);
+}
+
+/* Tables */
+.table {
+    background-color: var(--background-card);
+}
+
+.table th {
+    background-color: var(--background-hover);
+}
+
+.table tr:hover {
+    background-color: var(--background-hover);
+}
+
+/* Forms */
+.form-label {
+    color: var(--text-primary);
+}
+
+.form-hint {
+    color: var(--text-tertiary);
+}
+
+.form-error {
+    color: var(--error-color);
+}
+
+/* Modal */
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: var(--background-card);
+    box-shadow: var(--shadow-xl);
+}
+
+/* Tooltips */
+.tooltip {
+    background-color: var(--text-primary);
+    color: var(--text-inverse);
+}
+
+/* Progress bars */
+.progress-bar {
+    background-color: var(--background-hover);
+}
+
+.progress-bar-fill {
+    background-color: var(--primary-color);
+}
+
+/* Badges */
+.badge {
+    background-color: var(--primary-color);
+    color: var(--text-inverse);
+}
+
+/* Switch */
+.switch {
+    background-color: var(--secondary-light);
+}
+
+.switch.active {
+    background-color: var(--primary-color);
+}
+
+/* Tabs */
+.tab {
+    color: var(--text-secondary);
+}
+
+.tab.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+/* Cards */
+.card {
+    background-color: var(--background-card);
+    border: 1px solid var(--border-color);
+}
+
+.card-header {
+    border-bottom: 1px solid var(--border-light);
+}
+
+.card-footer {
+    border-top: 1px solid var(--border-light);
+}
+
+/* Dropdown */
+.dropdown-menu {
+    background-color: var(--background-card);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-lg);
+}
+
+.dropdown-item:hover {
+    background-color: var(--background-hover);
+}
+
+/* Pagination */
+.pagination-item {
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.pagination-item.active {
+    background-color: var(--primary-color);
+    color: var(--text-inverse);
+    border-color: var(--primary-color);
+}
+
+/* Breadcrumbs */
+.breadcrumb-item {
+    color: var(--text-tertiary);
+}
+
+.breadcrumb-item.active {
+    color: var(--text-primary);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--background-main);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--secondary-light);
+    border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-color);
+}

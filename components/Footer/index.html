@@ -1,0 +1,199 @@
+<footer class="h-footer">
+    <div class="h-footer-container">
+        <div class="h-footer-content">
+            <div class="h-footer-section">
+                <div class="h-footer-logo">
+                    <img src="/assets/images/logo/h-calculator-logo.svg" alt="H-Calculator" 
+                         width="32" height="32">
+                    <span class="h-footer-brand">H-Calculator</span>
+                </div>
+                <p class="h-footer-description" data-i18n="footer.description">
+                    스마트한 계산의 시작, 당신의 모든 계산을 위한 최적의 솔루션
+                </p>
+            </div>
+
+            <div class="h-footer-section">
+                <h3 class="h-footer-title" data-i18n="footer.categories">카테고리</h3>
+                <ul class="h-footer-list">
+                    <li><a href="/life" data-i18n="navigation.life">생활</a></li>
+                    <li><a href="/health" data-i18n="navigation.health">건강</a></li>
+                    <li><a href="/finance" data-i18n="navigation.finance">금융</a></li>
+                    <li><a href="/math" data-i18n="navigation.math">수학</a></li>
+                    <li><a href="/etc" data-i18n="navigation.etc">기타</a></li>
+                </ul>
+            </div>
+
+            <div class="h-footer-section">
+                <h3 class="h-footer-title" data-i18n="footer.support">지원</h3>
+                <ul class="h-footer-list">
+                    <li><a href="/about" data-i18n="footer.about">소개</a></li>
+                    <li><a href="/contact" data-i18n="footer.contact">문의하기</a></li>
+                    <li><a href="/privacy" data-i18n="footer.privacy">개인정보처리방침</a></li>
+                    <li><a href="/terms" data-i18n="footer.terms">이용약관</a></li>
+                </ul>
+            </div>
+
+            <div class="h-footer-section">
+                <h3 class="h-footer-title" data-i18n="footer.connect">팔로우</h3>
+                <div class="h-social-links">
+                    <a href="https://github.com/h-calculator" target="_blank" rel="noopener noreferrer" 
+                       aria-label="GitHub">
+                        <svg class="h-icon"><!-- GitHub icon SVG --></svg>
+                    </a>
+                    <a href="https://twitter.com/h_calculator" target="_blank" rel="noopener noreferrer" 
+                       aria-label="Twitter">
+                        <svg class="h-icon"><!-- Twitter icon SVG --></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="h-footer-bottom">
+            <div class="h-footer-lang">
+                <select class="h-lang-select" onchange="window.location.href=this.value">
+                    <option value="/ar" data-i18n="languages.ar">العربية</option>
+                    <option value="/de" data-i18n="languages.de">Deutsch</option>
+                    <option value="/en" data-i18n="languages.en">English</option>
+                    <option value="/es" data-i18n="languages.es">Español</option>
+                    <option value="/fr" data-i18n="languages.fr">Français</option>
+                    <option value="/ja" data-i18n="languages.ja">日本語</option>
+                    <option value="/ko" data-i18n="languages.ko">한국어</option>
+                    <option value="/pt" data-i18n="languages.pt">Português</option>
+                    <option value="/ru" data-i18n="languages.ru">Русский</option>
+                    <option value="/zh" data-i18n="languages.zh">中文</option>
+                </select>
+            </div>
+
+            <div class="h-copyright">
+                <p>© <span id="current-year">2024</span> H-Calculator. 
+                   <span data-i18n="footer.rights">All rights reserved.</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .h-footer {
+            background-color: var(--h-bg-card);
+            padding: var(--h-space-2xl) 0;
+            margin-top: auto;
+            border-top: 1px solid var(--h-border-light);
+        }
+
+        .h-footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--h-space-lg);
+        }
+
+        .h-footer-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: var(--h-space-xl);
+            margin-bottom: var(--h-space-2xl);
+        }
+
+        .h-footer-logo {
+            display: flex;
+            align-items: center;
+            gap: var(--h-space-sm);
+            margin-bottom: var(--h-space-md);
+        }
+
+        .h-footer-brand {
+            font-size: var(--h-text-xl);
+            font-weight: var(--h-font-bold);
+            color: var(--h-text-primary);
+        }
+
+        .h-footer-description {
+            color: var(--h-text-secondary);
+            font-size: var(--h-text-sm);
+            line-height: 1.6;
+        }
+
+        .h-footer-title {
+            font-size: var(--h-text-sm);
+            font-weight: var(--h-font-bold);
+            color: var(--h-text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: var(--h-space-md);
+        }
+
+        .h-footer-list {
+            list-style: none;
+        }
+
+        .h-footer-list li {
+            margin-bottom: var(--h-space-sm);
+        }
+
+        .h-footer-list a {
+            color: var(--h-text-secondary);
+            text-decoration: none;
+            transition: color var(--h-transition-fast);
+        }
+
+        .h-footer-list a:hover {
+            color: var(--h-primary);
+        }
+
+        .h-social-links {
+            display: flex;
+            gap: var(--h-space-md);
+        }
+
+        .h-social-links a {
+            color: var(--h-text-secondary);
+            transition: color var(--h-transition-fast);
+        }
+
+        .h-social-links a:hover {
+            color: var(--h-primary);
+        }
+
+        .h-footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: var(--h-space-lg);
+            border-top: 1px solid var(--h-border-light);
+        }
+
+        .h-lang-select {
+            padding: var(--h-space-sm) var(--h-space-md);
+            border: 1px solid var(--h-border-medium);
+            border-radius: var(--h-radius-md);
+            background-color: var(--h-bg-input);
+            color: var(--h-text-primary);
+        }
+
+        .h-copyright {
+            color: var(--h-text-secondary);
+            font-size: var(--h-text-sm);
+        }
+
+        @media (max-width: 768px) {
+            .h-footer-content {
+                grid-template-columns: 1fr;
+                gap: var(--h-space-xl);
+            }
+
+            .h-footer-bottom {
+                flex-direction: column;
+                gap: var(--h-space-lg);
+                text-align: center;
+            }
+        }
+    </style>
+
+    <script>
+        // 현재 연도 업데이트
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        // 현재 언어 선택
+        const currentLang = window.location.pathname.split('/')[1] || 'ko';
+        document.querySelector('.h-lang-select').value = `/${currentLang}`;
+    </script>
+</footer>

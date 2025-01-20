@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="단위 변환기 - 길이, 무게, 넓이 등 다양한 단위를 쉽게 변환하세요">
+    <title data-i18n="calculators.life.unit.title">Unit Converter</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/assets/css/variables.css">
+    <link rel="stylesheet" href="/assets/css/base.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+    
+    <!-- Scripts -->
+    <script src="/assets/js/i18n/i18n.js"></script>
+    <script src="/assets/js/i18n/detector.js"></script>
+    <script type="module">
+        import Sidebar from '/assets/js/components/Sidebar.js';
+        
+        // DOM이 로드되면 초기화
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 사이드바 초기화 (constructor에서 자동으로 createSidebar 호출)
+            new Sidebar();
+    
+            // 언어 감지 및 i18n 초기화
+            const currentLang = languageDetector.detectLanguage();
+            await initializeI18n(currentLang);
+    
+            // 나머지 코드...
+        });
+    </script>
+    
+    <style>
+        /* 메인 컨텐츠 레이아웃 */
+        .main-content {
+            padding: var(--h-space-lg);
+            transition: margin-left var(--h-transition-normal);
+        }
+
+        @media (min-width: 1024px) {
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+
+        /* 계산기 그리드 레이아웃 */
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--h-space-lg);
+            margin: var(--h-space-lg) 0;
+        }
+
+        /* 공통 변환 그리드 */
+        .common-conversions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--h-space-md);
+            margin-top: var(--h-space-xl);
+        }
+
+        /* 컨테이너 제한 */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--h-space-md);
+        }
+
+        /* 반응형 조정 */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: var(--h-space-md);
+            }
+
+            .calculator-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .common-conversions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <!-- 메인 컨텐츠 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 타이틀 섹션 -->
+            <div class="h-card text-center mb-8">
+                <h1 class="text-4xl text-primary mb-4 flex items-center justify-center gap-3">
+                    <span data-i18n="calculators.life.unit.title">Unit Converter</span>
+                    <span>📏</span>
+                </h1>
+                <p class="text-secondary" data-i18n="calculators.life.unit.description">
+                    Convert between different units of measurement
+                </p>
+            </div>
+
+            <!-- 계산기 섹션 -->
+            <div class="h-card">
+                <!-- 단위 타입 선택 -->
+                <div class="h-tabs">
+                    <button class="h-tab active" data-type="length" data-i18n="units.length.title">Length</button>
+                    <button class="h-tab" data-type="weight" data-i18n="units.weight.title">Weight</button>
+                    <button class="h-tab" data-type="area" data-i18n="units.area.title">Area</button>
+                    <button class="h-tab" data-type="volume" data-i18n="units.volume.title">Volume</button>
+                    <button class="h-tab" data-type="temperature" data-i18n="units.temperature.title">Temperature</button>
+                </div>
+
+                <!-- 변환기 입력 -->
+                <div class="calculator-grid">
+                    <!-- From 입력 -->
+                    <div class="h-card bg-neutral-50">
+                        <div class="h-input-group">
+                            <label class="h-input-label" data-i18n="common.convert_from">Convert from</label>
+                            <div class="flex gap-3">
+                                <input type="number" id="fromValue" class="h-input flex-1" 
+                                       data-i18n-placeholder="common.enter_value" oninput="convert()">
+                                <select id="fromUnit" class="h-input w-32" onchange="convert()"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- To 입력 -->
+                    <div class="h-card bg-neutral-50">
+                        <div class="h-input-group">
+                            <label class="h-input-label" data-i18n="common.result">Result</label>
+                            <div class="flex gap-3">
+                                <input type="number" id="toValue" class="h-input flex-1" readonly>
+                                <select id="toUnit" class="h-input w-32" onchange="convert()"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 자주 사용하는 변환 -->
+                <div class="mt-8">
+                    <h3 class="text-xl font-semibold mb-4 text-primary" data-i18n="common.common_conversions">
+                        Common Conversions
+                    </h3>
+                    <div class="common-conversions" id="commonUnits"></div>
+                </div>
+            </div>
+
+            <!-- 설명 섹션 -->
+            <div class="h-card mt-8">
+                <h2 class="text-2xl font-semibold mb-4 text-primary" data-i18n="common.how_to_use">How to use</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="common.instructions">Instructions</h3>
+                        <p data-i18n="[html]calculators.life.unit.instructions" class="text-secondary">
+                            1. Select the type of unit you want to convert<br>
+                            2. Enter the value you want to convert<br>
+                            3. Select the units to convert from and to<br>
+                            4. See the result instantly
+                        </p>
+                    </div>
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="common.tips">Tips</h3>
+                        <p data-i18n="[html]calculators.life.unit.tips" class="text-secondary">
+                            - Use decimal points for precise conversions<br>
+                            - Common conversions are shown below the calculator<br>
+                            - Results update automatically as you type
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script>
+        // 단위 변환 데이터
+        const unitData = {
+            length: {
+                mm: { factor: 1, key: 'units.length.mm' },
+                cm: { factor: 10, key: 'units.length.cm' },
+                m: { factor: 1000, key: 'units.length.m' },
+                km: { factor: 1000000, key: 'units.length.km' },
+                in: { factor: 25.4, key: 'units.length.in' },
+                ft: { factor: 304.8, key: 'units.length.ft' },
+                yd: { factor: 914.4, key: 'units.length.yd' },
+                mi: { factor: 1609344, key: 'units.length.mi' }
+            },
+            weight: {
+                mg: { factor: 0.001, key: 'units.weight.mg' },
+                g: { factor: 1, key: 'units.weight.g' },
+                kg: { factor: 1000, key: 'units.weight.kg' },
+                oz: { factor: 28.3495, key: 'units.weight.oz' },
+                lb: { factor: 453.592, key: 'units.weight.lb' }
+            },
+            area: {
+                mm2: { factor: 1, key: 'units.area.mm2' },
+                cm2: { factor: 100, key: 'units.area.cm2' },
+                m2: { factor: 1000000, key: 'units.area.m2' },
+                km2: { factor: 1000000000000, key: 'units.area.km2' },
+                ha: { factor: 10000000000, key: 'units.area.ha' },
+                in2: { factor: 645.16, key: 'units.area.in2' },
+                ft2: { factor: 92903.04, key: 'units.area.ft2' },
+                yd2: { factor: 836127.36, key: 'units.area.yd2' },
+                ac: { factor: 4046856422.4, key: 'units.area.ac' }
+            },
+            volume: {
+                ml: { factor: 1, key: 'units.volume.ml' },
+                l: { factor: 1000, key: 'units.volume.l' },
+                m3: { factor: 1000000, key: 'units.volume.m3' },
+                cm3: { factor: 1, key: 'units.volume.cm3' },
+                mm3: { factor: 0.001, key: 'units.volume.mm3' },
+                gal: { factor: 3785.41178, key: 'units.volume.gal' },
+                qt: { factor: 946.352946, key: 'units.volume.qt' },
+                pt: { factor: 473.176473, key: 'units.volume.pt' },
+                cup: { factor: 236.588236, key: 'units.volume.cup' }
+            },
+            temperature: {
+                C: { key: 'units.temperature.celsius' },
+                F: { key: 'units.temperature.fahrenheit' },
+                K: { key: 'units.temperature.kelvin' }
+            }
+        };
+
+        // 현재 선택된 단위 타입
+        let currentType = 'length';
+
+        // DOM이 로드되면 초기화
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 언어 감지 및 i18n 초기화
+            const currentLang = languageDetector.detectLanguage();
+            await initializeI18n(currentLang);
+
+            // 단위 타입 버튼 이벤트 리스너
+            document.querySelectorAll('.h-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelector('.h-tab.active').classList.remove('active');
+                    tab.classList.add('active');
+                    currentType = tab.dataset.type;
+                    updateUnitSelects();
+                    convert();
+                });
+            });
+
+            // 초기 단위 선택 옵션 설정
+            updateUnitSelects();
+        });
+
+        // i18n 초기화
+        async function initializeI18n(lang) {
+            await i18n.init({
+                lng: lang,
+                resources: {
+                    en: await import('/locales/en/translation.json'),
+                    ko: await import('/locales/ko/translation.json')
+                }
+            });
+
+            // 페이지 번역 적용
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (key.startsWith('[html]')) {
+                    element.innerHTML = i18n.t(key.substring(6));
+                } else {
+                    element.textContent = i18n.t(key);
+                }
+            });
+
+            // placeholder 번역 적용
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-i18n-placeholder');
+                element.placeholder = i18n.t(key);
+            });
+        }
+
+        // 단위 선택 옵션 업데이트
+        function updateUnitSelects() {
+            const units = unitData[currentType];
+            const fromSelect = document.getElementById('fromUnit');
+            const toSelect = document.getElementById('toUnit');
+            
+            fromSelect.innerHTML = '';
+            toSelect.innerHTML = '';
+
+            Object.entries(units).forEach(([unit, data]) => {
+                const optionText = i18n.t(data.key);
+                fromSelect.add(new Option(optionText, unit));
+                toSelect.add(new Option(optionText, unit));
+            });
+
+            // 기본값 설정
+            setupDefaultUnits(currentType);
+            updateCommonUnits();
+        }
+
+        // 기본 단위 설정
+        function setupDefaultUnits(type) {
+            const fromSelect = document.getElementById('fromUnit');
+            const toSelect = document.getElementById('toUnit');
+
+            switch(type) {
+                case 'length':
+                    fromSelect.value = 'm';
+                    toSelect.value = 'cm';
+                    break;
+                case 'weight':
+                    fromSelect.value = 'kg';
+                    toSelect.value = 'g';
+                    break;
+                case 'area':
+                    fromSelect.value = 'm2';
+                    toSelect.value = 'cm2';
+                    break;
+                case 'volume':
+                    fromSelect.value = 'l';
+                    toSelect.value = 'ml';
+                    break;
+                case 'temperature':
+                    fromSelect.value = 'C';
+                    toSelect.value = 'F';
+                    break;
+            }
+        }
+
+        // 단위 변환 계산
+        function convert() {
+            const fromValue = parseFloat(document.getElementById('fromValue').value);
+            if (isNaN(fromValue)) {
+                document.getElementById('toValue').value = '';
+                return;
+            }
+
+            const fromUnit = document.getElementById('fromUnit').value;
+            const toUnit = document.getElementById('toUnit').value;
+
+            let result;
+            if (currentType === 'temperature') {
+                result = convertTemperature(fromValue, fromUnit, toUnit);
+            } else {
+                result = convertStandard(fromValue, fromUnit, toUnit);
+            }
+
+            document.getElementById('toValue').value = result.toFixed(4);
+        }
+
+        // 일반 단위 변환
+        function convertStandard(value, fromUnit, toUnit) {
+            const units = unitData[currentType];
+            const baseValue = value * units[fromUnit].factor;
+            return baseValue / units[toUnit].factor;
+        }
+
+        // 온도 변환
+        function convertTemperature(value, fromUnit, toUnit) {
+            // 켈빈으로 변환
+            let kelvin;
+            switch(fromUnit) {
+                case 'C': kelvin = value + 273.15; break;
+                case 'F': kelvin = (value - 32) * 5/9 + 273.15; break;
+                case 'K': kelvin = value; break;
+            }
+
+            // 켈빈에서 목표 단위로 변환
+            switch(toUnit) {
+                case 'C': return kelvin - 273.15;
+                case 'F': return (kelvin - 273.15) * 9/5 + 32;
+                case 'K': return kelvin;
+                default: return value;
+            }
+        }
+
+        // 자주 사용하는 변환 업데이트
+        function updateCommonUnits() {
+            const container = document.getElementById('commonUnits');
+            container.innerHTML = getCommonConversions(currentType)
+                .map(conv => `
+                    <div class="h-card bg-neutral-50">
+                        <div class="font-medium text-primary">
+                            ${i18n.t(unitData[currentType][conv.from].key)} → 
+                            ${i18n.t(unitData[currentType][conv.to].key)}
+                        </div>
+                        <div class="text-secondary text-sm mt-2">${conv.description}</div>
+                    </div>
+                `).join('');
+        }
+
+        // 자주 사용하는 변환 목록 가져오기
+        function getCommonConversions(type) {
+            switch(type) {
+                case 'length':
+                    return [
+                        { from: 'm', to: 'km', description: '1000m = 1km' },
+                        { from: 'm', to: 'cm', description: '1m = 100cm' },
+                        { from: 'km', to: 'mi', description: '1.609km = 1mi' },
+                        { from: 'ft', to: 'm', description: '3.281ft = 1m' }
+                    ];
+                case 'weight':
+                    return [
+                        { from: 'kg', to: 'g', description: '1kg = 1000g' },
+                        { from: 'g', to: 'mg', description: '1g = 1000mg' },
+                        { from: 'kg', to: 'lb', description: '1kg = 2.205lb' },
+                        { from: 'oz', to: 'g', description: '1oz = 28.35g' }
+                    ];
+                case 'area':
+                    return [
+                        { from: 'm2', to: 'cm2', description: '1m² = 10000cm²' },
+                        { from: 'ha', to: 'm2', description: '1ha = 10000m²' },
+                        { from: 'km2', to: 'ha', description: '1km² = 100ha' },
+                        { from: 'ac', to: 'm2', description: '1ac = 4047m²' }
+                    ];
+                case 'volume':
+                    return [
+                        { from: 'l', to: 'ml', description: '1L = 1000mL' },
+                        { from: 'm3', to: 'l', description: '1m³ = 1000L' },
+                        { from: 'gal', to: 'l', description: '1gal = 3.785L' },
+                        { from: 'l', to: 'cup', description: '1L = 4.227cups' }
+                    ];
+                case 'temperature':
+                    return [
+                        { from: 'C', to: 'F', description: '0°C = 32°F' },
+                        { from: 'C', to: 'K', description: '0°C = 273.15K' },
+                        { from: 'F', to: 'C', description: '32°F = 0°C' },
+                        { from: 'K', to: 'C', description: '273.15K = 0°C' }
+                    ];
+                default:
+                    return [];
+            }
+        }
+    </script>
+</body>
+</html>
