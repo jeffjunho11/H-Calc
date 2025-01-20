@@ -19,11 +19,27 @@
     <!-- Scripts -->
     <script src="../../assets/js/i18n/i18n.js"></script>
     <script type="module">
-        import Sidebar from '../../assets/js/components/Sidebar.js';
-        import { initializeI18n, createLanguageSelector } from '../../assets/js/i18n/i18n-config.js';
+        import Sidebar from '/assets/js/components/Sidebar.js';
+        
+        // DOM이 로드되면 초기화
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 사이드바 초기화 (constructor에서 자동으로 createSidebar 호출)
+            new Sidebar();
+    
+            // 언어 감지 및 i18n 초기화
+            const currentLang = languageDetector.detectLanguage();
+            await initializeI18n(currentLang);
+    
+            // 나머지 코드...
+        });
     </script>
 
     <style>
+        @media (min-width: 1024px) {
+            .main-content {
+                margin-left: 280px;
+            }
+        }
         /* BMI 계산기 전용 스타일 */
         .bmi-scale {
             position: relative;

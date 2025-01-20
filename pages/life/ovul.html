@@ -19,32 +19,28 @@
     <!-- Scripts -->
     <script src="../../assets/js/i18n/i18n.js"></script>
     <script type="module">
-        import Sidebar from '../../assets/js/components/Sidebar.js';
-        import { initializeI18n, createLanguageSelector } from '../../assets/js/i18n/i18n-config.js';
-
+        import Sidebar from '/assets/js/components/Sidebar.js';
+        
         // DOM이 로드되면 초기화
         document.addEventListener('DOMContentLoaded', async () => {
-            // 1. i18n 초기화
-            await initializeI18n();
-
-            // 2. 언어 선택기 추가
-            const langSelectorWrapper = document.createElement('div');
-            langSelectorWrapper.className = 'lang-selector-wrapper';
-            langSelectorWrapper.appendChild(createLanguageSelector());
-            document.body.appendChild(langSelectorWrapper);
-
-            // 3. 사이드바 초기화
+            // 사이드바 초기화 (constructor에서 자동으로 createSidebar 호출)
             new Sidebar();
-
-            // 4. 달력 초기화 등 나머지 기능 초기화
-            initializeDateSelects();
-            updateCalendar();
+    
+            // 언어 감지 및 i18n 초기화
+            const currentLang = languageDetector.detectLanguage();
+            await initializeI18n(currentLang);
+    
+            // 나머지 코드...
         });
     </script>
 
     <style>
         /* 기존 스타일 유지 */
-        ...
+        @media (min-width: 1024px) {
+            .main-content {
+                margin-left: 280px;
+            }
+        }
 
         /* 언어 선택기 스타일 */
         .lang-selector-wrapper {

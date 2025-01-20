@@ -174,51 +174,73 @@
         </div>
     </main>
     <script>
+        const unitSymbols = {
+            length: {
+                mm: 'mm', cm: 'cm', m: 'm', km: 'km', 
+                in: 'in', ft: 'ft', yd: 'yd', mi: 'mi'
+            },
+            weight: {
+                mg: 'mg', g: 'g', kg: 'kg', 
+                oz: 'oz', lb: 'lb'
+            },
+            area: {
+                mm2: 'mm²', cm2: 'cm²', m2: 'm²', km2: 'km²', 
+                ha: 'ha', in2: 'in²', ft2: 'ft²', yd2: 'yd²', ac: 'ac'
+            },
+            volume: {
+                ml: 'ml', l: 'l', m3: 'm³', 
+                cm3: 'cm³', mm3: 'mm³', 
+                gal: 'gal', qt: 'qt', pt: 'pt', cup: 'cup'
+            },
+            temperature: {
+                C: '°C', F: '°F', K: 'K'
+            }
+        };
         // 단위 변환 데이터
         const unitData = {
             length: {
-                mm: { factor: 1, key: 'units.length.mm' },
-                cm: { factor: 10, key: 'units.length.cm' },
-                m: { factor: 1000, key: 'units.length.m' },
-                km: { factor: 1000000, key: 'units.length.km' },
-                in: { factor: 25.4, key: 'units.length.in' },
-                ft: { factor: 304.8, key: 'units.length.ft' },
-                yd: { factor: 914.4, key: 'units.length.yd' },
-                mi: { factor: 1609344, key: 'units.length.mi' }
+                mm: { factor: 1, symbol: 'mm' },
+                cm: { factor: 10, symbol: 'cm' },
+                m: { factor: 1000, symbol: 'm' },
+                km: { factor: 1000000, symbol: 'km' },
+                in: { factor: 25.4, symbol: 'in' },
+                ft: { factor: 304.8, symbol: 'ft' },
+                yd: { factor: 914.4, symbol: 'yd' },
+                mi: { factor: 1609344, symbol: 'mi' }
             },
             weight: {
-                mg: { factor: 0.001, key: 'units.weight.mg' },
-                g: { factor: 1, key: 'units.weight.g' },
-                kg: { factor: 1000, key: 'units.weight.kg' },
-                oz: { factor: 28.3495, key: 'units.weight.oz' },
-                lb: { factor: 453.592, key: 'units.weight.lb' }
+                mg: { factor: 0.001, symbol: 'mg' },
+                g: { factor: 1, symbol: 'g' },
+                kg: { factor: 1000, symbol: 'kg' },
+                oz: { factor: 28.3495, symbol: 'oz' },
+                lb: { factor: 453.592, symbol: 'lb' }
             },
             area: {
-                mm2: { factor: 1, key: 'units.area.mm2' },
-                cm2: { factor: 100, key: 'units.area.cm2' },
-                m2: { factor: 1000000, key: 'units.area.m2' },
-                km2: { factor: 1000000000000, key: 'units.area.km2' },
-                ha: { factor: 10000000000, key: 'units.area.ha' },
-                in2: { factor: 645.16, key: 'units.area.in2' },
-                ft2: { factor: 92903.04, key: 'units.area.ft2' },
-                yd2: { factor: 836127.36, key: 'units.area.yd2' },
-                ac: { factor: 4046856422.4, key: 'units.area.ac' }
+                mm2: { factor: 1, symbol: 'mm²' },
+                cm2: { factor: 100, symbol: 'cm²' },
+                m2: { factor: 1000000, symbol: 'm²' },
+                km2: { factor: 1000000000000, symbol: 'km²' },
+                ha: { factor: 10000000000, symbol: 'ha' },
+                in2: { factor: 645.16, symbol: 'in²' },
+                ft2: { factor: 92903.04, symbol: 'ft²' },
+                yd2: { factor: 836127.36, symbol: 'yd²' },
+                ac: { factor: 4046856422.4, symbol: 'ac' }
             },
             volume: {
-                ml: { factor: 1, key: 'units.volume.ml' },
-                l: { factor: 1000, key: 'units.volume.l' },
-                m3: { factor: 1000000, key: 'units.volume.m3' },
-                cm3: { factor: 1, key: 'units.volume.cm3' },
-                mm3: { factor: 0.001, key: 'units.volume.mm3' },
-                gal: { factor: 3785.41178, key: 'units.volume.gal' },
-                qt: { factor: 946.352946, key: 'units.volume.qt' },
-                pt: { factor: 473.176473, key: 'units.volume.pt' },
-                cup: { factor: 236.588236, key: 'units.volume.cup' }
+                ml: { factor: 1, symbol: 'ml' },
+                l: { factor: 1000, symbol: 'l' },
+                m3: { factor: 1000000, symbol: 'm³' },
+                cm3: { factor: 1, symbol: 'cm³' },
+                mm3: { factor: 0.001, symbol: 'mm³' },
+                gal: { factor: 3785.41178, symbol: 'gal' },
+                qt: { factor: 946.352946, symbol: 'qt' },
+                pt: { factor: 473.176473, symbol: 'pt' },
+                cup: { factor: 236.588236, symbol: 'cup' }
             },
             temperature: {
-                C: { key: 'units.temperature.celsius' },
-                F: { key: 'units.temperature.fahrenheit' },
-                K: { key: 'units.temperature.kelvin' }
+                C: { symbol: '°C' },
+                F: { symbol: '°F' },
+                K: { symbol: 'K' }
             }
         };
 
@@ -226,12 +248,59 @@
         let currentType = 'length';
 
         // DOM이 로드되면 초기화
-        document.addEventListener('DOMContentLoaded', async () => {
-            // 언어 감지 및 i18n 초기화
-            const currentLang = languageDetector.detectLanguage();
-            await initializeI18n(currentLang);
+        // i18n 라이브러리 로드 후 전역 객체로 설정
+        document.addEventListener('DOMContentLoaded', () => {
+            // i18n 전역 객체 설정
+            window.i18n = {
+                t: function(key) {
+                    // 기본 번역 함수 (키 그대로 반환)
+                    return key;
+                }
+            };
 
-            // 단위 타입 버튼 이벤트 리스너
+            function updateUnitSelects() {
+                const units = unitData[currentType];
+                const fromSelect = document.getElementById('fromUnit');
+                const toSelect = document.getElementById('toUnit');
+                
+                fromSelect.innerHTML = '';
+                toSelect.innerHTML = '';
+
+                Object.entries(units).forEach(([unit, data]) => {
+                    fromSelect.add(new Option(data.symbol, unit));
+                    toSelect.add(new Option(data.symbol, unit));
+                });
+
+                // 기존 코드 유지
+                setupDefaultUnits(currentType);
+                updateCommonUnits();
+            }
+
+            function convert() {
+                const fromValue = parseFloat(document.getElementById('fromValue').value);
+                if (isNaN(fromValue)) {
+                    document.getElementById('toValue').value = '';
+                    return;
+                }
+
+                const fromUnit = document.getElementById('fromUnit').value;
+                const toUnit = document.getElementById('toUnit').value;
+
+                let result;
+                if (currentType === 'temperature') {
+                    result = convertTemperature(fromValue, fromUnit, toUnit);
+                } else {
+                    // 안전한 단위 변환
+                    const units = unitData[currentType];
+                    const fromFactor = units[fromUnit]?.factor || 1;
+                    const toFactor = units[toUnit]?.factor || 1;
+                    result = (fromValue * fromFactor) / toFactor;
+                }
+
+                document.getElementById('toValue').value = result.toFixed(4);
+            }
+
+            // 이벤트 리스너 설정
             document.querySelectorAll('.h-tab').forEach(tab => {
                 tab.addEventListener('click', () => {
                     document.querySelector('.h-tab.active').classList.remove('active');
@@ -242,7 +311,7 @@
                 });
             });
 
-            // 초기 단위 선택 옵션 설정
+            // 초기 설정
             updateUnitSelects();
         });
 
@@ -283,9 +352,10 @@
             toSelect.innerHTML = '';
 
             Object.entries(units).forEach(([unit, data]) => {
-                const optionText = i18n.t(data.key);
-                fromSelect.add(new Option(optionText, unit));
-                toSelect.add(new Option(optionText, unit));
+                // 특수 기호로 표시
+                const displayUnit = unitSymbols[currentType][unit] || unit;
+                fromSelect.add(new Option(displayUnit, unit));
+                toSelect.add(new Option(displayUnit, unit));
             });
 
             // 기본값 설정
@@ -369,19 +439,22 @@
             }
         }
 
-        // 자주 사용하는 변환 업데이트
         function updateCommonUnits() {
             const container = document.getElementById('commonUnits');
             container.innerHTML = getCommonConversions(currentType)
-                .map(conv => `
+                .map(conv => {
+                    // 특수 기호로 변환
+                    const fromSymbol = unitSymbols[currentType][conv.from] || conv.from;
+                    const toSymbol = unitSymbols[currentType][conv.to] || conv.to;
+                    
+                    return `
                     <div class="h-card bg-neutral-50">
                         <div class="font-medium text-primary">
-                            ${i18n.t(unitData[currentType][conv.from].key)} → 
-                            ${i18n.t(unitData[currentType][conv.to].key)}
+                            ${fromSymbol} → ${toSymbol}
                         </div>
                         <div class="text-secondary text-sm mt-2">${conv.description}</div>
                     </div>
-                `).join('');
+                `}).join('');
         }
 
         // 자주 사용하는 변환 목록 가져오기
