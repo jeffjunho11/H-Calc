@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="복리 계산기 - 복리 효과와 자산 증가 계산">
+    <title data-i18n="calculators.finance.compound.title">복리 계산기</title>
+    
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-M0BMY9S4Z3"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+    
+        gtag('config', 'G-M0BMY9S4Z3');
+        </script>
+        
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    
+    <!-- Scripts -->
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script type="module">
+        import Sidebar from '/assets/js/components/Sidebar.js';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            new Sidebar();
+            const currentLang = languageDetector.detectLanguage();
+            await initializeI18n(currentLang);
+        });
+    </script>
+
+    <style>
+        @media (min-width: 1024px) {
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+
+        .input-with-unit {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-with-unit input {
+            padding-right: 4rem;
+        }
+
+        .input-unit {
+            position: absolute;
+            right: 1rem;
+            color: var(--h-text-secondary);
+        }
+
+        .compound-type {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .compound-option {
+            flex: 1;
+            text-align: center;
+            padding: 1rem;
+            border: 2px solid var(--h-border-light);
+            border-radius: var(--h-radius-md);
+            cursor: pointer;
+            transition: all var(--h-transition-fast);
+        }
+
+        .compound-option.active {
+            border-color: var(--h-primary);
+            background-color: var(--h-primary-light);
+        }
+
+        .results-section {
+            background: var(--h-primary-light);
+            padding: 1.5rem;
+            border-radius: var(--h-radius-md);
+            margin: 2rem 0;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .result-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--h-radius-md);
+            text-align: center;
+            box-shadow: var(--h-shadow-sm);
+        }
+
+        .result-title {
+            color: var(--h-text-secondary);
+            font-size: var(--h-text-sm);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-value {
+            color: var(--h-primary);
+            font-size: var(--h-text-2xl);
+            font-weight: var(--h-font-bold);
+        }
+
+        .result-subtext {
+            color: var(--h-text-secondary);
+            font-size: var(--h-text-sm);
+            margin-top: 0.5rem;
+        }
+
+        .chart-container {
+            height: 400px;
+            margin: 2rem 0;
+            padding: 1rem;
+            background: white;
+            border-radius: var(--h-radius-md);
+            box-shadow: var(--h-shadow-sm);
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1rem;
+            text-align: right;
+            border-bottom: 1px solid var(--h-border-light);
+        }
+
+        .comparison-table th {
+            background-color: var(--h-primary-light);
+            color: var(--h-text-primary);
+            font-weight: var(--h-font-medium);
+            text-align: center;
+        }
+
+        .comparison-table tr:hover {
+            background-color: var(--h-bg-hover);
+        }
+
+        .growth-highlight {
+            color: var(--h-primary);
+            font-weight: var(--h-font-semibold);
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <main class="main-content">
+        <div class="container">
+            <!-- 타이틀 섹션 -->
+            <div class="h-card text-center mb-8">
+                <h1 class="text-4xl text-primary mb-4 flex items-center justify-center gap-3">
+                    <span data-i18n="calculators.finance.compound.title">복리 계산기</span>
+                    <span>📈</span>
+                </h1>
+                <p class="text-secondary" data-i18n="calculators.finance.compound.description">
+                    복리의 마법을 체험해보세요
+                </p>
+            </div>
+
+            <!-- 계산기 섹션 -->
+            <div class="h-card">
+                <!-- 복리 계산 주기 선택 -->
+                <div class="compound-type">
+                    <div class="compound-option active" onclick="switchCompoundPeriod('monthly')" data-period="monthly"
+                         data-i18n="calculators.finance.compound.monthly">월 복리</div>
+                    <div class="compound-option" onclick="switchCompoundPeriod('quarterly')" data-period="quarterly"
+                         data-i18n="calculators.finance.compound.quarterly">분기 복리</div>
+                    <div class="compound-option" onclick="switchCompoundPeriod('yearly')" data-period="yearly"
+                         data-i18n="calculators.finance.compound.yearly">연 복리</div>
+                </div>
+
+                <!-- 입력 섹션 -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- 초기 투자금 -->
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.finance.compound.initial_amount">
+                            초기 투자금
+                        </label>
+                        <div class="input-with-unit">
+                            <input type="number" id="initialAmount" class="h-input" min="0" step="1000000"
+                                   onchange="calculateCompound()" onkeyup="calculateCompound()">
+                            <span class="input-unit">원</span>
+                        </div>
+                    </div>
+
+                    <!-- 추가 투자금 -->
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.finance.compound.additional_investment">
+                            정기 추가 투자금
+                        </label>
+                        <div class="input-with-unit">
+                            <input type="number" id="additionalInvestment" class="h-input" min="0" step="100000"
+                                   onchange="calculateCompound()" onkeyup="calculateCompound()">
+                            <span class="input-unit">원</span>
+                        </div>
+                    </div>
+
+                    <!-- 기간 -->
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.finance.compound.period">
+                            투자 기간
+                        </label>
+                        <div class="input-with-unit">
+                            <input type="number" id="period" class="h-input" min="1" max="50"
+                                   onchange="calculateCompound()" onkeyup="calculateCompound()">
+                            <span class="input-unit">년</span>
+                        </div>
+                    </div>
+
+                    <!-- 이율 -->
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.finance.compound.interest_rate">
+                            연 이율
+                        </label>
+                        <div class="input-with-unit">
+                            <input type="number" id="interestRate" class="h-input" min="0" max="30" step="0.1"
+                                   onchange="calculateCompound()" onkeyup="calculateCompound()">
+                            <span class="input-unit">%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 결과 섹션 -->
+                <div class="results-section">
+                    <div class="results-grid">
+                        <div class="result-card">
+                            <div class="result-title" data-i18n="calculators.finance.compound.total_investment">
+                                총 투자금
+                            </div>
+                            <div class="result-value" id="totalInvestment">0원</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-title" data-i18n="calculators.finance.compound.total_interest">
+                                총 이자
+                            </div>
+                            <div class="result-value" id="totalInterest">0원</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-title" data-i18n="calculators.finance.compound.final_amount">
+                                최종 금액
+                            </div>
+                            <div class="result-value" id="finalAmount">0원</div>
+                            <div class="result-subtext" id="returnRate">수익률: 0%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 복리 vs 단리 비교 -->
+                <div class="comparison-section">
+                    <h3 class="text-xl font-semibold mb-4" data-i18n="calculators.finance.compound.comparison">
+                        복리 vs 단리 비교
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="comparison-table">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="calculators.finance.compound.year">연차</th>
+                                    <th data-i18n="calculators.finance.compound.compound_interest">복리</th>
+                                    <th data-i18n="calculators.finance.compound.simple_interest">단리</th>
+                                    <th data-i18n="calculators.finance.compound.difference">차이</th>
+                                </tr>
+                            </thead>
+                            <tbody id="comparisonTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 설명 섹션 -->
+            <div class="h-card mt-8">
+                <h2 class="text-2xl font-semibold mb-4 text-primary" data-i18n="calculators.finance.compound.about">
+                    복리 효과 안내
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.finance.compound.compound_types">
+                            복리 계산 방식
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.finance.compound.compound_description">
+                            - 월 복리: 매월 이자가 원금에 더해져 재투자<br>
+                            - 분기 복리: 3개월마다 이자가 원금에 더해져 재투자<br>
+                            - 연 복리: 1년마다 이자가 원금에 더해져 재투자<br>
+                            - 복리는 이자에 이자가 붙는 효과로 시간이 지날수록 커짐
+                        </p>
+                    </div>
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.finance.compound.notes">
+                            참고사항
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.finance.compound.notes_description">
+                            - 계산 결과는 세전 금액 기준입니다<br>
+                            - 실제 수익률은 시장 상황에 따라 다를 수 있음<br>
+                            - 정기적인 투자와 장기 투자가 복리 효과를 극대화<br>
+                            - 수수료와 세금은 계산에 포함되지 않음
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let compoundPeriod = 'monthly';
+
+        function switchCompoundPeriod(period) {
+            compoundPeriod = period;
+            document.querySelectorAll('.compound-option').forEach(option => {
+                option.classList.toggle('active', option.dataset.period === period);
+            });
+            calculateCompound();
+        }
+
+        function calculateCompound() {
+            const initialAmount = parseFloat(document.getElementById('initialAmount').value) || 0;
+            const additionalInvestment = parseFloat(document.getElementById('additionalInvestment').value) || 0;
+            const years = parseFloat(document.getElementById('period').value) || 0;
+            const annualRate = parseFloat(document.getElementById('interestRate').value) || 0;
+
+            if (!initialAmount && !additionalInvestment || !years || !annualRate) return;
+
+            let periodsPerYear;
+            switch (compoundPeriod) {
+                case 'monthly': periodsPerYear = 12; break;
+                case 'quarterly': periodsPerYear = 4; break;
+                case 'yearly': periodsPerYear = 1; break;
+            }
+
+            const totalPeriods = years * periodsPerYear;
+            const periodicRate = annualRate / 100 / periodsPerYear;
+            const periodicInvestment = additionalInvestment / (12 / periodsPerYear);
+
+            // 복리 계산
+            let compoundBalance = initialAmount;
+            let simpleBalance = initialAmount;
+            let totalInvestment = initialAmount;
+            let yearlyComparison = [];
+
+            // 년도별 계산
+            for (let year = 1; year <= years; year++) {
+                // 단리 계산
+                simpleBalance = initialAmount + (additionalInvestment * 12 * year) + 
+                    initialAmount * (annualRate / 100) * year +
+                    (additionalInvestment * 12) * (annualRate / 100) * (year - 1) / 2;
+
+                // 복리 계산
+                for (let period = 1; period <= periodsPerYear; period++) {
+                    compoundBalance = (compoundBalance + periodicInvestment) * (1 + periodicRate);
+                    if (period === 1) {
+                        totalInvestment += periodicInvestment * periodsPerYear;
+                    }
+                }
+
+                yearlyComparison.push({
+                    year: year,
+                    compound: compoundBalance,
+                    simple: simpleBalance,
+                    difference: compoundBalance - simpleBalance
+                });
+            }
+
+            const totalInterest = compoundBalance - totalInvestment;
+            const returnRate = ((compoundBalance / totalInvestment) - 1) * 100;
+
+            // 결과 표시
+            document.getElementById('totalInvestment').textContent = 
+                Math.round(totalInvestment).toLocaleString() + '원';
+            document.getElementById('totalInterest').textContent = 
+                Math.round(totalInterest).toLocaleString() + '원';
+            document.getElementById('finalAmount').textContent = 
+                Math.round(compoundBalance).toLocaleString() + '원';
+            document.getElementById('returnRate').textContent = 
+                `수익률: ${returnRate.toFixed(1)}%`;
+
+            // 비교 테이블 표시
+            const comparisonTable = document.getElementById('comparisonTable');
+            comparisonTable.innerHTML = yearlyComparison.map(year => `
+                <tr>
+                    <td class="text-center">${year.year}년차</td>
+                    <td>${Math.round(year.compound).toLocaleString()}원</td>
+                    <td>${Math.round(year.simple).toLocaleString()}원</td>
+                    <td class="growth-highlight">+${Math.round(year.difference).toLocaleString()}원</td>
+                </tr>
+            `).join('');
+        }
+
+        // 초기 계산
+        document.addEventListener('DOMContentLoaded', () => {
+            // 입력 필드에 기본값 설정
+            document.getElementById('initialAmount').value = '10000000';
+            document.getElementById('additionalInvestment').value = '500000';
+            document.getElementById('period').value = '10';
+            document.getElementById('interestRate').value = '5.0';
+            // 초기 계산 실행
+            calculateCompound();
+        });
+    </script>
+</body>
+</html>

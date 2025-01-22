@@ -1,3 +1,5 @@
+
+
 class I18n {
     constructor() {
         this.defaultLocale = 'en';

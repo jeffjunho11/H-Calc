@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="예금 계산기 - 예치금 이자 계산">
+    <title data-i18n="calculators.finance.deposit.title">예금 계산기</title>
+    
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-M0BMY9S4Z3"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+    
+        gtag('config', 'G-M0BMY9S4Z3');
+        </script>
+        
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    
+    <!-- Scripts -->
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script type="module">
+        import Sidebar from '/assets/js/components/Sidebar.js';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            new Sidebar();
+            const currentLang = languageDetector.detectLanguage();
+            await initializeI18n(currentLang);
+        });
+    </script>
+
+    <style>
+        @media (min-width: 1024px) {
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+
+        .input-with-unit {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-with-unit input {
+            padding-right: 4rem;
+        }
+
+        .input-unit {
+            position: absolute;
+            right: 1rem;
+            color: var(--h-text-secondary);
+        }
+
+        .calculate-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .option-group {
+            padding: 1rem;
+            background: var(--h-bg-card);
+            border-radius: var(--h-radius-md);
+            box-shadow: var(--h-shadow-sm);
+        }
+
+        .option-title {
+            font-weight: var(--h-font-medium);
+            margin-bottom: 0.5rem;
+            color: var(--h-text-primary);
+        }
+
+        .option-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .option-button {
+            flex: 1;
+            padding: 0.5rem;
+            border: 2px solid var(--h-border-light);
+            border-radius: var(--h-radius-md);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--h-transition-fast);
+            font-size: var(--h-text-sm);
+        }
+
+        .option-button.active {
+            border-color: var(--h-primary);
+            background-color: var(--h-primary-light);
+            color: var(--h-primary);
+        }
+
+        .result-section {
+            background: var(--h-primary-light);
+            padding: 1.5rem;
+            border-radius: var(--h-radius-md);
+            margin: 2rem 0;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .result-item {
+            text-align: center;
+            padding: 1rem;
+            background: white;
+            border-radius: var(--h-radius-md);
+            box-shadow: var(--h-shadow-sm);
+        }
+
+        .result-label {
+            color: var(--h-text-secondary);
+            font-size: var(--h-text-sm);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-value {
+            color: var(--h-primary);
+            font-size: var(--h-text-2xl);
+            font-weight: var(--h-font-bold);
+        }
+
+        .interest-details {
+            margin-top: 2rem;
+        }
+
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .details-table th,
+        .details-table td {
+            padding: 1rem;
+            text-align: right;
+            border-bottom: 1px solid var(--h-border-light);
+        }
+
+        .details-table th {
+            background-color: var(--h-primary-light);
+            color: var(--h-text-primary);
+            font-weight: var(--h-font-medium);
+            text-align: center;
+        }
+
+        .details-table tr:hover {
+            background-color: var(--h-bg-hover);
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <main class="main-content">
+        <div class="container">
+            <!-- 타이틀 섹션 -->
+            <div class="h-card text-center mb-8">
+                <h1 class="text-4xl text-primary mb-4 flex items-center justify-center gap-3">
+                    <span data-i18n="calculators.finance.deposit.title">예금 계산기</span>
+                    <span>💰</span>
+                </h1>
+                <p class="text-secondary" data-i18n="calculators.finance.deposit.description">
+                    예금 만기 시 받을 수 있는 금액을 계산해보세요
+                </p>
+            </div>
+
+            <!-- 계산기 섹션 -->
+            <div class="h-card">
+                <!-- 계산 옵션 -->
+                <div class="calculate-options">
+                    <!-- 이자 계산 방식 -->
+                    <div class="option-group">
+                        <div class="option-title" data-i18n="calculators.finance.deposit.interest_type">이자 계산 방식</div>
+                        <div class="option-buttons">
+                            <div class="option-button active" onclick="switchInterestType('compound')" data-type="compound"
+                                 data-i18n="calculators.finance.deposit.compound">복리</div>
+                            <div class="option-button" onclick="switchInterestType('simple')" data-type="simple"
+                                 data-i18n="calculators.finance.deposit.simple">단리</div>
+                        </div>
+                    </div>
+
+                    <!-- 이자 지급 주기 -->
+                    <div class="option-group">
+                        <div class="option-title" data-i18n="calculators.finance.deposit.interest_payment">이자 지급 주기</div>
+                        <div class="option-buttons">
+                            <div class="option-button active" onclick="switchPaymentPeriod('monthly')" data-period="monthly"
+                                 data-i18n="calculators.finance.deposit.monthly">매월</div>
+                            <div class="option-button" onclick="switchPaymentPeriod('quarterly')" data-period="quarterly"
+                                 data-i18n="calculators.finance.deposit.quarterly">매분기</div>
+                            <div class="option-button" onclick="switchPaymentPeriod('yearly')" data-period="yearly"
+                                 data-i18n="calculators.finance.deposit.yearly">매년</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 입력 섹션 -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- 예치금액 -->
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.finance.deposit.principal">
+                            예치금액
+                        </label>
+                        <div class="input-with-unit">
+                            <input type="number" id="principal" class="h-input" min="0" step="1000000"
+                                   onchange="calculateDeposit()" onkeyup="calculateDeposit()">
+                            <span class="input-unit">원</span>
+                        </div>
+                    </div>
+
+                    <!-- 예치기간 -->
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.finance.deposit.period">
+                            예치기간
+                        </label>
+                        <div class="input-with-unit">
+                            <input type="number" id="period" class="h-input" min="1" max="60"
+                                   onchange="calculateDeposit()" onkeyup="calculateDeposit()">
+                            <span class="input-unit">개월</span>
+                        </div>
+                    </div>
+
+                    <!-- 연이율 -->
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.finance.deposit.interest_rate">
+                            연이율
+                        </label>
+                        <div class="input-with-unit">
+                            <input type="number" id="interestRate" class="h-input" min="0" max="20" step="0.1"
+                                   onchange="calculateDeposit()" onkeyup="calculateDeposit()">
+                            <span class="input-unit">%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 결과 섹션 -->
+                <div class="result-section">
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <div class="result-label" data-i18n="calculators.finance.deposit.principal">
+                                예치금액
+                            </div>
+                            <div class="result-value" id="totalPrincipal">0원</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label" data-i18n="calculators.finance.deposit.interest">
+                                이자
+                            </div>
+                            <div class="result-value" id="totalInterest">0원</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label" data-i18n="calculators.finance.deposit.maturity_amount">
+                                만기 수령액
+                            </div>
+                            <div class="result-value" id="maturityAmount">0원</div>
+                        </div>
+                    </div>
+
+                    <div class="tax-info text-sm text-secondary mt-4" data-i18n="[html]calculators.finance.deposit.tax_info">
+                        * 이자소득세 15.4% 공제 전 금액입니다
+                    </div>
+                </div>
+
+                <!-- 이자 지급 상세 내역 -->
+                <div class="interest-details">
+                    <h3 class="text-xl font-semibold mb-4" data-i18n="calculators.finance.deposit.interest_details">
+                        이자 지급 상세 내역
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="details-table">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="calculators.finance.deposit.payment_date">지급일</th>
+                                    <th data-i18n="calculators.finance.deposit.interest_amount">이자 금액</th>
+                                    <th data-i18n="calculators.finance.deposit.accumulated_interest">누적 이자</th>
+                                    <th data-i18n="calculators.finance.deposit.balance">잔액</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detailsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 설명 섹션 -->
+            <div class="h-card mt-8">
+                <h2 class="text-2xl font-semibold mb-4 text-primary" data-i18n="calculators.finance.deposit.about">
+                    예금 이자 안내
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.finance.deposit.interest_types">
+                            이자 계산 방식
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.finance.deposit.interest_description">
+                            - 단리: 원금에 대해서만 이자가 붙음<br>
+                            - 복리: 원금과 이자를 합한 금액에 이자가 붙음<br>
+                            - 이자는 선택한 지급 주기에 따라 계산됨<br>
+                            - 중도해지 시 약정금리보다 낮은 금리 적용
+                        </p>
+                    </div>
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.finance.deposit.notes">
+                            참고사항
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.finance.deposit.notes_description">
+                            - 계산 결과는 예시이며 실제와 다를 수 있음<br>
+                            - 이자소득세 15.4% 공제 전 금액임<br>
+                            - 실제 금리는 금융기관마다 다를 수 있음<br>
+                            - 정확한 상품 조건은 금융기관과 상담하세요
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let interestType = 'compound';
+        let paymentPeriod = 'monthly';
+
+        function switchInterestType(type) {
+            interestType = type;
+            document.querySelectorAll('[data-type]').forEach(button => {
+                button.classList.toggle('active', button.dataset.type === type);
+            });
+            calculateDeposit();
+        }
+
+        function switchPaymentPeriod(period) {
+            paymentPeriod = period;
+            document.querySelectorAll('[data-period]').forEach(button => {
+                button.classList.toggle('active', button.dataset.period === period);
+            });
+            calculateDeposit();
+        }
+
+        function calculateDeposit() {
+            const principal = parseFloat(document.getElementById('principal').value) || 0;
+            const months = parseFloat(document.getElementById('period').value) || 0;
+            const annualRate = parseFloat(document.getElementById('interestRate').value) || 0;
+
+            if (!principal || !months || !annualRate) return;
+
+            let paymentInterval;
+            switch (paymentPeriod) {
+                case 'monthly': paymentInterval = 1; break;
+                case 'quarterly': paymentInterval = 3; break;
+                case 'yearly': paymentInterval = 12; break;
+            }
+
+            const payments = Math.floor(months / paymentInterval);
+            let totalAmount = principal;
+            let totalInterest = 0;
+            let details = [];
+
+            if (interestType === 'compound') {
+                // 복리 계산
+                const intervalRate = (annualRate / 100) * (paymentInterval / 12);
+                for (let i = 1; i <= payments; i++) {
+                    const prevAmount = totalAmount;
+                    totalAmount = principal * Math.pow(1 + intervalRate, i);
+                    const intervalInterest = totalAmount - prevAmount;
+                    totalInterest += intervalInterest;
+
+                    details.push({
+                        period: i * paymentInterval,
+                        interest: intervalInterest,
+                        accumulated: totalInterest,
+                        balance: totalAmount
+                    });
+                }
+            } else {
+                // 단리 계산
+                const monthlyRate = (annualRate / 100) / 12;
+                const intervalInterest = principal * monthlyRate * paymentInterval;
+                
+                for (let i = 1; i <= payments; i++) {
+                    totalInterest += intervalInterest;
+                    totalAmount = principal + totalInterest;
+
+                    details.push({
+                        period: i * paymentInterval,
+                        interest: intervalInterest,
+                        accumulated: totalInterest,
+                        balance: totalAmount
+                    });
+                }
+            }
+
+            // 결과 표시
+            document.getElementById('totalPrincipal').textContent = 
+                Math.round(principal).toLocaleString() + '원';
+            document.getElementById('totalInterest').textContent = 
+                Math.round(totalInterest).toLocaleString() + '원';
+            document.getElementById('maturityAmount').textContent = 
+                Math.round(totalAmount).toLocaleString() + '원';
+
+            // 상세 내역 표시
+            const detailsBody = document.getElementById('detailsBody');
+            detailsBody.innerHTML = details.map(item => `
+                <tr>
+                    <td class="text-center">${item.period}개월</td>
+                    <td>${Math.round(item.interest).toLocaleString()}원</td>
+                    <td>${Math.round(item.accumulated).toLocaleString()}원</td>
+                    <td>${Math.round(item.balance).toLocaleString()}원</td>
+                </tr>
+            `).join('');
+        }
+
+        // 초기 계산
+        document.addEventListener('DOMContentLoaded', () => {
+            // 입력 필드에 기본값 설정
+            document.getElementById('principal').value = '10000000';
+            document.getElementById('period').value = '12';
+            document.getElementById('interestRate').value = '3.5';
+            // 초기 계산 실행
+            calculateDeposit();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="연봉 계산기 - 세전/세후 급여 계산 및 4대 보험료 계산">
+    <title data-i18n="calculators.finance.salary.title">연봉 계산기</title>
+    
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-M0BMY9S4Z3"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+    
+        gtag('config', 'G-M0BMY9S4Z3');
+        </script>
+        
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    
+    <!-- Scripts -->
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script type="module">
+        import Sidebar from '/assets/js/components/Sidebar.js';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            new Sidebar();
+            const currentLang = languageDetector.detectLanguage();
+            await initializeI18n(currentLang);
+        });
+    </script>
+
+    <style>
+        @media (min-width: 1024px) {
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+
+        .input-with-unit {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-with-unit input {
+            padding-right: 4rem;
+        }
+
+        .input-unit {
+            position: absolute;
+            right: 1rem;
+            color: var(--h-text-secondary);
+        }
+
+        .salary-breakdown {
+            background: var(--h-bg-card);
+            border-radius: var(--h-radius-lg);
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .breakdown-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .breakdown-item {
+            background: var(--h-primary-light);
+            padding: 1.5rem;
+            border-radius: var(--h-radius-md);
+            text-align: center;
+        }
+
+        .breakdown-label {
+            color: var(--h-text-secondary);
+            font-size: var(--h-text-sm);
+            margin-bottom: 0.5rem;
+        }
+
+        .breakdown-value {
+            color: var(--h-primary);
+            font-size: var(--h-text-2xl);
+            font-weight: var(--h-font-bold);
+        }
+
+        .calculation-type {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .type-option {
+            flex: 1;
+            text-align: center;
+            padding: 1rem;
+            border: 2px solid var(--h-border-light);
+            border-radius: var(--h-radius-md);
+            cursor: pointer;
+            transition: all var(--h-transition-fast);
+        }
+
+        .type-option.active {
+            border-color: var(--h-primary);
+            background-color: var(--h-primary-light);
+        }
+
+        .monthly-yearly-toggle {
+            margin-bottom: 1.5rem;
+        }
+
+        .tax-insurance-details {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--h-border-light);
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .detail-item {
+            padding: 1rem;
+            background: var(--h-bg-card);
+            border-radius: var(--h-radius-md);
+            box-shadow: var(--h-shadow-sm);
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <main class="main-content">
+        <div class="container">
+            <!-- 타이틀 섹션 -->
+            <div class="h-card text-center mb-8">
+                <h1 class="text-4xl text-primary mb-4 flex items-center justify-center gap-3">
+                    <span data-i18n="calculators.finance.salary.title">연봉 계산기</span>
+                    <span>💰</span>
+                </h1>
+                <p class="text-secondary" data-i18n="calculators.finance.salary.description">
+                    연봉을 입력하여 실수령액과 세금, 4대 보험료를 계산해보세요
+                </p>
+            </div>
+
+            <!-- 계산기 섹션 -->
+            <div class="h-card">
+                <!-- 계산 유형 선택 -->
+                <div class="calculation-type">
+                    <div class="type-option active" onclick="switchType('yearly')" data-type="yearly" 
+                         data-i18n="calculators.finance.salary.yearly">연봉 기준</div>
+                    <div class="type-option" onclick="switchType('monthly')" data-type="monthly"
+                         data-i18n="calculators.finance.salary.monthly">월급 기준</div>
+                </div>
+
+                <!-- 입력 섹션 -->
+                <div class="grid grid-cols-1 gap-6">
+                    <!-- 급여 입력 -->
+                    <div class="h-input-group">
+                        <label class="h-input-label" id="salaryLabel" data-i18n="calculators.finance.salary.yearly_salary">
+                            연봉
+                        </label>
+                        <div class="input-with-unit">
+                            <input type="number" id="salary" class="h-input" min="0" step="1000000"
+                                   onchange="calculateSalary()" onkeyup="calculateSalary()">
+                            <span class="input-unit">원</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 실수령액 섹션 -->
+                <div id="resultSection" class="salary-breakdown" style="display: none;">
+                    <h3 class="text-xl font-semibold mb-4" data-i18n="calculators.finance.salary.result">
+                        급여 명세
+                    </h3>
+                    <div class="breakdown-grid">
+                        <div class="breakdown-item">
+                            <div class="breakdown-label" data-i18n="calculators.finance.salary.gross_income">총 급여</div>
+                            <div class="breakdown-value" id="grossIncome">0원</div>
+                        </div>
+                        <div class="breakdown-item">
+                            <div class="breakdown-label" data-i18n="calculators.finance.salary.deductions">공제액</div>
+                            <div class="breakdown-value" id="totalDeductions">0원</div>
+                        </div>
+                        <div class="breakdown-item">
+                            <div class="breakdown-label" data-i18n="calculators.finance.salary.net_income">실수령액</div>
+                            <div class="breakdown-value" id="netIncome">0원</div>
+                        </div>
+                    </div>
+
+                    <!-- 세부 내역 -->
+                    <div class="tax-insurance-details">
+                        <h4 class="text-lg font-semibold mb-4" data-i18n="calculators.finance.salary.deduction_details">
+                            공제 내역
+                        </h4>
+                        <div class="details-grid">
+                            <div class="detail-item">
+                                <div class="breakdown-label" data-i18n="calculators.finance.salary.income_tax">소득세</div>
+                                <div class="breakdown-value" id="incomeTax">0원</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="breakdown-label" data-i18n="calculators.finance.salary.health_insurance">건강보험</div>
+                                <div class="breakdown-value" id="healthInsurance">0원</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="breakdown-label" data-i18n="calculators.finance.salary.pension">국민연금</div>
+                                <div class="breakdown-value" id="pension">0원</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="breakdown-label" data-i18n="calculators.finance.salary.employment_insurance">고용보험</div>
+                                <div class="breakdown-value" id="employmentInsurance">0원</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 설명 섹션 -->
+            <div class="h-card mt-8">
+                <h2 class="text-2xl font-semibold mb-4 text-primary" data-i18n="calculators.finance.salary.about">
+                    급여 계산 안내
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.finance.salary.calculation_method">
+                            계산 방법
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.finance.salary.calculation_description">
+                            - 국민연금: 월 급여의 4.5%<br>
+                            - 건강보험: 월 급여의 3.545%<br>
+                            - 고용보험: 월 급여의 0.9%<br>
+                            - 소득세: 과세표준에 따른 누진세율 적용<br>
+                            - 지방소득세: 소득세의 10%
+                        </p>
+                    </div>
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.finance.salary.notes">
+                            참고사항
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.finance.salary.notes_description">
+                            - 계산 결과는 예상치이며 실제와 다를 수 있음<br>
+                            - 각종 수당과 공제항목에 따라 차이 발생 가능<br>
+                            - 연말정산 시 추가 환급/납부 발생 가능<br>
+                            - 정확한 급여 관련 문의는 인사팀에 문의하세요
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let calculationType = 'yearly';
+
+        function switchType(type) {
+            calculationType = type;
+            // 활성화된 옵션 스타일 변경
+            document.querySelectorAll('.type-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            document.querySelector(`[data-type="${type}"]`).classList.add('active');
+            
+            // 라벨 변경
+            const label = document.getElementById('salaryLabel');
+            label.textContent = type === 'yearly' ? 
+                i18n.t('calculators.finance.salary.yearly_salary') : 
+                i18n.t('calculators.finance.salary.monthly_salary');
+            
+            // 재계산
+            calculateSalary();
+        }
+
+        function calculateSalary() {
+            const inputAmount = parseFloat(document.getElementById('salary').value) || 0;
+            let monthlyAmount = calculationType === 'yearly' ? inputAmount / 12 : inputAmount;
+
+            // 4대 보험료 계산
+            const pension = monthlyAmount * 0.045; // 국민연금 4.5%
+            const healthInsurance = monthlyAmount * 0.03545; // 건강보험 3.545%
+            const employmentInsurance = monthlyAmount * 0.009; // 고용보험 0.9%
+
+            // 과세표준 계산 (간단한 예시)
+            const taxableIncome = monthlyAmount - (pension + healthInsurance + employmentInsurance);
+            
+            // 소득세 계산 (간단한 예시 - 실제는 더 복잡한 누진세율 적용)
+            let incomeTax = 0;
+            if (taxableIncome <= 1200000) {
+                incomeTax = taxableIncome * 0.06;
+            } else if (taxableIncome <= 4600000) {
+                incomeTax = taxableIncome * 0.15;
+            } else {
+                incomeTax = taxableIncome * 0.24;
+            }
+
+            // 지방소득세
+            const localTax = incomeTax * 0.1;
+
+            // 총 공제액
+            const totalDeductions = pension + healthInsurance + employmentInsurance + incomeTax + localTax;
+
+            // 실수령액
+            const netIncome = monthlyAmount - totalDeductions;
+
+            // 결과 표시
+            document.getElementById('resultSection').style.display = 'block';
+            document.getElementById('grossIncome').textContent = 
+                Math.round(monthlyAmount).toLocaleString() + '원';
+            document.getElementById('totalDeductions').textContent = 
+                Math.round(totalDeductions).toLocaleString() + '원';
+            document.getElementById('netIncome').textContent = 
+                Math.round(netIncome).toLocaleString() + '원';
+            
+            // 세부 내역
+            document.getElementById('incomeTax').textContent = 
+                Math.round(incomeTax + localTax).toLocaleString() + '원';
+            document.getElementById('healthInsurance').textContent = 
+                Math.round(healthInsurance).toLocaleString() + '원';
+            document.getElementById('pension').textContent = 
+                Math.round(pension).toLocaleString() + '원';
+            document.getElementById('employmentInsurance').textContent = 
+                Math.round(employmentInsurance).toLocaleString() + '원';
+        }
+
+        // 초기 계산
+        document.addEventListener('DOMContentLoaded', () => {
+            // 입력 필드에 기본값 설정
+            document.getElementById('salary').value = '30000000';
+            // 초기 계산 실행
+            calculateSalary();
+        });
+    </script>
+</body>
+</html>

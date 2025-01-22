@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-M0BMY9S4Z3"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-M0BMY9S4Z3');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="투자 수익 계산기 - 투자 원금과 수익률을 예측해보세요">
+    <title data-i18n="calculators.finance.invest.title">투자 수익 계산기</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    
+    <!-- Scripts -->
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script type="module">
+        import Sidebar from '/assets/js/components/Sidebar.js';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            new Sidebar();
+    
+            const currentLang = languageDetector.detectLanguage();
+            await initializeI18n(currentLang);
+        });
+    </script>
+
+    <style>
+        @media (min-width: 1024px) {
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--h-space-lg);
+            margin-top: var(--h-space-xl);
+        }
+
+        .result-card {
+            background: var(--h-bg-card);
+            border-radius: var(--h-radius-lg);
+            padding: var(--h-space-lg);
+            text-align: center;
+            transition: transform var(--h-transition-normal);
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .result-value {
+            font-size: var(--h-text-4xl);
+            font-weight: var(--h-font-bold);
+            color: var(--h-primary);
+            margin: var(--h-space-md) 0;
+        }
+
+        .result-unit {
+            font-size: var(--h-text-lg);
+            color: var(--h-text-secondary);
+        }
+
+        .investment-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--h-space-md);
+            margin: var(--h-space-lg) 0;
+        }
+
+        .investment-type {
+            background: var(--h-bg-card);
+            padding: var(--h-space-md);
+            border-radius: var(--h-radius-md);
+            cursor: pointer;
+            transition: all var(--h-transition-fast);
+            border: 2px solid transparent;
+        }
+
+        .investment-type:hover {
+            background: var(--h-primary-light);
+        }
+
+        .investment-type.active {
+            border-color: var(--h-primary);
+            background: var(--h-primary-light);
+        }
+
+        .investment-type-title {
+            font-weight: var(--h-font-medium);
+            color: var(--h-primary);
+            margin-bottom: var(--h-space-xs);
+        }
+
+        .investment-type-desc {
+            font-size: var(--h-text-sm);
+            color: var(--h-text-secondary);
+        }
+
+        .risk-levels {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: var(--h-space-md);
+            margin: var(--h-space-lg) 0;
+        }
+
+        .risk-level {
+            background: var(--h-bg-card);
+            padding: var(--h-space-md);
+            border-radius: var(--h-radius-md);
+            cursor: pointer;
+            transition: all var(--h-transition-fast);
+            border: 2px solid transparent;
+        }
+
+        .risk-level:hover {
+            background: var(--h-primary-light);
+        }
+
+        .risk-level.active {
+            border-color: var(--h-primary);
+            background: var(--h-primary-light);
+        }
+
+        .risk-level-title {
+            font-weight: var(--h-font-medium);
+            color: var(--h-primary);
+            margin-bottom: var(--h-space-xs);
+        }
+
+        .risk-level-desc {
+            font-size: var(--h-text-sm);
+            color: var(--h-text-secondary);
+        }
+
+        .earnings-chart {
+            background: var(--h-bg-card);
+            border-radius: var(--h-radius-lg);
+            padding: var(--h-space-lg);
+            margin-top: var(--h-space-xl);
+        }
+
+        .chart-bar {
+            height: 30px;
+            background: var(--h-primary-light);
+            border-radius: var(--h-radius-full);
+            margin: var(--h-space-sm) 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-bar-fill {
+            height: 100%;
+            background: var(--h-primary);
+            border-radius: var(--h-radius-full);
+            transition: width var(--h-transition-normal);
+        }
+
+        .chart-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: var(--h-text-sm);
+            color: var(--h-text-secondary);
+            margin-top: var(--h-space-xs);
+        }
+
+        @media (max-width: 768px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <main class="main-content">
+        <div class="container">
+            <!-- 타이틀 섹션 -->
+            <div class="h-card text-center mb-8">
+                <h1 class="text-4xl text-primary mb-4 flex items-center justify-center gap-3">
+                    <span data-i18n="calculators.finance.invest.title">투자 수익 계산기</span>
+                    <span>📈</span>
+                </h1>
+                <p class="text-secondary" data-i18n="calculators.finance.invest.description">
+                    투자 원금, 기간, 수익률을 입력하고 예상 수익을 계산해보세요
+                </p>
+            </div>
+
+            <!-- 투자 유형 선택 -->
+            <div class="investment-types">
+                <div class="investment-type active" data-type="lump_sum" onclick="selectInvestmentType('lump_sum')">
+                    <div class="investment-type-title" data-i18n="calculators.finance.invest.lump_sum">
+                        일시 투자
+                    </div>
+                    <div class="investment-type-desc" data-i18n="calculators.finance.invest.lump_sum_desc">
+                        한 번에 전체 금액 투자
+                    </div>
+                </div>
+
+                <div class="investment-type" data-type="periodic" onclick="selectInvestmentType('periodic')">
+                    <div class="investment-type-title" data-i18n="calculators.finance.invest.periodic">
+                        정기 투자
+                    </div>
+                    <div class="investment-type-desc" data-i18n="calculators.finance.invest.periodic_desc">
+                        매월 일정 금액 투자
+                    </div>
+                </div>
+            </div>
+
+            <!-- 위험 수준 선택 -->
+            <div class="risk-levels">
+                <div class="risk-level" data-level="low" onclick="selectRiskLevel('low')">
+                    <div class="risk-level-title" data-i18n="calculators.finance.invest.risk_low">
+                        저위험
+                    </div>
+                    <div class="risk-level-desc" data-i18n="calculators.finance.invest.risk_low_desc">
+                        안정적이고 낮은 수익
+                    </div>
+                </div>
+
+                <div class="risk-level active" data-level="medium" onclick="selectRiskLevel('medium')">
+                    <div class="risk-level-title" data-i18n="calculators.finance.invest.risk_medium">
+                        중위험
+                    </div>
+                    <div class="risk-level-desc" data-i18n="calculators.finance.invest.risk_medium_desc">
+                        보통 수준의 위험과 수익
+                    </div>
+                </div>
+
+                <div class="risk-level" data-level="high" onclick="selectRiskLevel('high')">
+                    <div class="risk-level-title" data-i18n="calculators.finance.invest.risk_high">
+                        고위험
+                    </div>
+                    <div class="risk-level-desc" data-i18n="calculators.finance.invest.risk_high_desc">
+                        높은 위험, 높은 잠재적 수익
+                    </div>
+                </div>
+            </div>
+
+            <!-- 계산기 섹션 -->
+            <div class="h-card">
+                <!-- 입력 섹션 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- 투자 원금 -->
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.finance.invest.principal">투자 원금</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="principal" class="h-input" 
+                                   min="0" step="10000" 
+                                   data-i18n-placeholder="calculators.finance.invest.enter_principal">
+                            <span class="input-unit">원</span>
+                        </div>
+                    </div>
+
+                    <!-- 정기 투자액 -->
+                    <div id="periodicInvestmentInput" class="h-input-group" style="display: none;">
+                        <label class="h-input-label" data-i18n="calculators.finance.invest.monthly_investment">월 투자액</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="monthlyInvestment" class="h-input" 
+                                   min="0" step="10000" 
+                                   data-i18n-placeholder="calculators.finance.invest.enter_monthly_investment">
+                            <span class="input-unit">원</span>
+                        </div>
+                    </div>
+
+                    <!-- 투자 기간 -->
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.finance.invest.investment_period">투자 기간</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="investmentPeriod" class="h-input" 
+                                   min="1" max="120" 
+                                   data-i18n-placeholder="calculators.finance.invest.enter_investment_period">
+                            <span class="input-unit">개월</span>
+                        </div>
+                    </div>
+
+                    <!-- 예상 수익률 -->
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.finance.invest.expected_return_rate">예상 수익률</label>
+                        <div class="input-with-unit">
+                            <input type="number" id="expectedReturnRate" class="h-input" 
+                                   min="-100" max="100" step="0.1" 
+                                   data-i18n-placeholder="calculators.finance.invest.enter_expected_return_rate">
+                            <span class="input-unit">%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 결과 섹션 -->
+                <div class="results-grid">
+                    <!-- 총 투자액 -->
+                    <div class="result-card">
+                        <h3 class="text-lg font-medium" data-i18n="calculators.finance.invest.total_investment">
+                            총 투자액
+                        </h3>
+                        <div class="result-value">
+                            <span id="totalInvestment">0</span>
+                            <span class="result-unit">원</span>
+                        </div>
+                        <p class="text-sm text-secondary" data-i18n="calculators.finance.invest.total_investment_desc">
+                            투자한 총 금액
+                        </p>
+                    </div>
+
+                    <!-- 투자 수익 -->
+                    <div class="result-card">
+                        <h3 class="text-lg font-medium" data-i18n="calculators.finance.invest.total_return">
+                            총 투자 수익
+                        </h3>
+                        <div class="result-value">
+                            <span id="totalReturn">0</span>
+                            <span class="result-unit">원</span>
+                        </div>
+                        <p class="text-sm text-secondary" data-i18n="calculators.finance.invest.total_return_desc">
+                            투자로 얻은 수익
+                        </p>
+                    </div>
+
+                    <!-- 최종 투자 금액 -->
+                    <div class="result-card">
+                        <h3 class="text-lg font-medium" data-i18n="calculators.finance.invest.final_amount">
+                            최종 투자 금액
+                        </h3>
+                        <div class="result-value">
+                            <span id="finalAmount">0</span>
+                            <span class="result-unit">원</span>
+                        </div>
+                        <p class="text-sm text-secondary" data-i18n="calculators.finance.invest.final_amount_desc">
+                            투자 후 총 금액
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 투자 수익 차트 -->
+                <div class="earnings-chart">
+                    <h3 class="text-xl font-medium mb-4" data-i18n="calculators.finance.invest.earnings_breakdown">
+                        투자 수익 분석
+                    </h3>
+                    <div class="space-y-4"><!-- 원금 -->
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span data-i18n="calculators.finance.invest.principal_amount">원금</span>
+                                <span id="principalAmountChart">0원</span>
+                            </div>
+                            <div class="chart-bar">
+                                <div id="principalPercentage" class="chart-bar-fill" style="width: 0%;"></div>
+                            </div>
+                            <div class="chart-label">
+                                <span>0%</span>
+                                <span id="principalCalories">0 원</span>
+                            </div>
+                        </div>
+
+                        <!-- 투자 수익 -->
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span data-i18n="calculators.finance.invest.investment_earnings">투자 수익</span>
+                                <span id="earningsAmountChart">0원</span>
+                            </div>
+                            <div class="chart-bar">
+                                <div id="earningsPercentage" class="chart-bar-fill" style="width: 0%;"></div>
+                            </div>
+                            <div class="chart-label">
+                                <span>0%</span>
+                                <span id="earningsCalories">0 원</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 설명 섹션 -->
+            <div class="h-card mt-8">
+                <h2 class="text-2xl font-semibold mb-4 text-primary" data-i18n="calculators.finance.invest.about">
+                    투자란?
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.finance.invest.calculation_method">
+                            계산 방법
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.finance.invest.calculation_description">
+                            투자 수익 계산 기본 원칙:
+                            <br>- 복리 수익률 계산
+                            <br>- 일시 투자 및 정기 투자 고려
+                            <br>- 위험 수준에 따른 수익률 차이
+                            <br>- 세전 수익 기준
+                        </p>
+                    </div>
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.finance.invest.notes">
+                            참고사항
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.finance.invest.notes_description">
+                            - 실제 수익률은 시장 상황에 따라 변동
+                            <br>- 과거 수익률이 미래 수익을 보장하지 않음
+                            <br>- 투자 위험 고려 필요
+                            <br>- 분산 투자로 위험 관리
+                            <br>- 전문가와 상담 권장
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 현재 선택된 투자 유형
+        let currentInvestmentType = 'lump_sum';
+        // 현재 선택된 위험 수준
+        let currentRiskLevel = 'medium';
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // i18n 초기화
+                await initializeI18n();
+                
+                // 언어 선택기 추가
+                const langSelectorWrapper = document.createElement('div');
+                langSelectorWrapper.className = 'lang-selector-wrapper';
+                langSelectorWrapper.appendChild(createLanguageSelector());
+                document.body.appendChild(langSelectorWrapper);
+
+                // 사이드바 초기화
+                new Sidebar();
+
+                // 초기 계산
+                calculateInvestment();
+            } catch (error) {
+                console.error('Failed to initialize:', error);
+            }
+        });
+
+        // 투자 유형 선택
+        function selectInvestmentType(type) {
+            // 투자 유형 카드 스타일 토글
+            document.querySelectorAll('.investment-type').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelector(`.investment-type[data-type="${type}"]`).classList.add('active');
+            
+            // 정기 투자 입력란 표시/숨김
+            const periodicInput = document.getElementById('periodicInvestmentInput');
+            periodicInput.style.display = type === 'periodic' ? 'block' : 'none';
+            
+            currentInvestmentType = type;
+            calculateInvestment();
+        }
+
+        // 위험 수준 선택
+        function selectRiskLevel(level) {
+            // 위험 수준 카드 스타일 토글
+            document.querySelectorAll('.risk-level').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelector(`.risk-level[data-level="${level}"]`).classList.add('active');
+            
+            // 위험 수준에 따른 기본 수익률 설정
+            const returnRateInput = document.getElementById('expectedReturnRate');
+            switch(level) {
+                case 'low':
+                    returnRateInput.value = 3.5;
+                    break;
+                case 'medium':
+                    returnRateInput.value = 7;
+                    break;
+                case 'high':
+                    returnRateInput.value = 12;
+                    break;
+            }
+            
+            currentRiskLevel = level;
+            calculateInvestment();
+        }
+
+        // 투자 계산
+        function calculateInvestment() {
+            const principal = parseFloat(document.getElementById('principal').value) || 0;
+            const investmentPeriod = parseInt(document.getElementById('investmentPeriod').value) || 0;
+            const expectedReturnRate = parseFloat(document.getElementById('expectedReturnRate').value) || 0;
+
+            let totalInvestment = principal;
+            let finalAmount = principal;
+            let totalReturn = 0;
+
+            if (currentInvestmentType === 'periodic') {
+                // 정기 투자 계산
+                const monthlyInvestment = parseFloat(document.getElementById('monthlyInvestment').value) || 0;
+                totalInvestment = principal + (monthlyInvestment * investmentPeriod);
+                finalAmount = principal;
+
+                for (let month = 1; month <= investmentPeriod; month++) {
+                    // 월별 투자금 추가
+                    finalAmount += monthlyInvestment;
+                    
+                    // 월 단위 수익률 계산 (복리)
+                    const monthlyReturnRate = expectedReturnRate / 100 / 12;
+                    finalAmount *= (1 + monthlyReturnRate);
+                }
+            } else {
+                // 일시 투자 계산 (복리)
+                const monthlyReturnRate = expectedReturnRate / 100 / 12;
+                finalAmount = principal * Math.pow(1 + monthlyReturnRate, investmentPeriod);
+            }
+
+            // 총 투자 수익 계산
+            totalReturn = finalAmount - totalInvestment;
+
+            // 결과 표시
+            document.getElementById('totalInvestment').textContent = 
+                new Intl.NumberFormat('ko-KR').format(Math.round(totalInvestment));
+            
+            document.getElementById('totalReturn').textContent = 
+                new Intl.NumberFormat('ko-KR').format(Math.round(totalReturn));
+            
+            document.getElementById('finalAmount').textContent = 
+                new Intl.NumberFormat('ko-KR').format(Math.round(finalAmount));
+
+            // 차트 업데이트
+            updateInvestmentChart(principal, totalReturn, finalAmount);
+        }
+
+        // 투자 수익 차트 업데이트
+        function updateInvestmentChart(principal, totalReturn, finalAmount) {
+            // 원금 차트
+            const principalPercentage = (principal / finalAmount * 100).toFixed(1);
+            document.getElementById('principalAmountChart').textContent = 
+                new Intl.NumberFormat('ko-KR').format(Math.round(principal)) + '원';
+            document.getElementById('principalPercentage').style.width = principalPercentage + '%';
+            document.getElementById('principalCalories').textContent = principalPercentage + '%';
+
+            // 투자 수익 차트
+            const earningsPercentage = (totalReturn / finalAmount * 100).toFixed(1);
+            document.getElementById('earningsAmountChart').textContent = 
+                new Intl.NumberFormat('ko-KR').format(Math.round(totalReturn)) + '원';
+            document.getElementById('earningsPercentage').style.width = earningsPercentage + '%';
+            document.getElementById('earningsCalories').textContent = earningsPercentage + '%';
+        }
+    </script>
+</body>
+</html>

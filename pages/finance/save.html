@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="적금 계산기 - 만기 수령액과 이자 계산">
+    <title data-i18n="calculators.finance.save.title">적금 계산기</title>
+    
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-M0BMY9S4Z3"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+    
+        gtag('config', 'G-M0BMY9S4Z3');
+        </script>
+        
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    
+    <!-- Scripts -->
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script type="module">
+        import Sidebar from '/assets/js/components/Sidebar.js';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            new Sidebar();
+            const currentLang = languageDetector.detectLanguage();
+            await initializeI18n(currentLang);
+        });
+    </script>
+
+    <style>
+        @media (min-width: 1024px) {
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+
+        .input-with-unit {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-with-unit input {
+            padding-right: 4rem;
+        }
+
+        .input-unit {
+            position: absolute;
+            right: 1rem;
+            color: var(--h-text-secondary);
+        }
+
+        .interest-type {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .interest-option {
+            flex: 1;
+            text-align: center;
+            padding: 1rem;
+            border: 2px solid var(--h-border-light);
+            border-radius: var(--h-radius-md);
+            cursor: pointer;
+            transition: all var(--h-transition-fast);
+        }
+
+        .interest-option.active {
+            border-color: var(--h-primary);
+            background-color: var(--h-primary-light);
+        }
+
+        .result-section {
+            background: var(--h-primary-light);
+            padding: 1.5rem;
+            border-radius: var(--h-radius-md);
+            margin: 2rem 0;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .result-item {
+            text-align: center;
+            padding: 1rem;
+            background: white;
+            border-radius: var(--h-radius-md);
+            box-shadow: var(--h-shadow-sm);
+        }
+
+        .result-label {
+            color: var(--h-text-secondary);
+            font-size: var(--h-text-sm);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-value {
+            color: var(--h-primary);
+            font-size: var(--h-text-2xl);
+            font-weight: var(--h-font-bold);
+        }
+
+        .timeline {
+            margin-top: 2rem;
+            padding: 2rem;
+            background: var(--h-bg-card);
+            border-radius: var(--h-radius-lg);
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .timeline-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .timeline-table th,
+        .timeline-table td {
+            padding: 1rem;
+            text-align: right;
+            border-bottom: 1px solid var(--h-border-light);
+        }
+
+        .timeline-table th {
+            background-color: var(--h-primary-light);
+            color: var(--h-text-primary);
+            font-weight: var(--h-font-medium);
+            text-align: center;
+        }
+
+        .timeline-table tr:hover {
+            background-color: var(--h-bg-hover);
+        }
+
+        .tax-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: var(--h-bg-card);
+            border-radius: var(--h-radius-md);
+            font-size: var(--h-text-sm);
+            color: var(--h-text-secondary);
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <main class="main-content">
+        <div class="container">
+            <!-- 타이틀 섹션 -->
+            <div class="h-card text-center mb-8">
+                <h1 class="text-4xl text-primary mb-4 flex items-center justify-center gap-3">
+                    <span data-i18n="calculators.finance.save.title">적금 계산기</span>
+                    <span>💰</span>
+                </h1>
+                <p class="text-secondary" data-i18n="calculators.finance.save.description">
+                    적금 만기 시 받을 수 있는 금액을 계산해보세요
+                </p>
+            </div>
+
+            <!-- 계산기 섹션 -->
+            <div class="h-card">
+                <!-- 이자 계산 방식 선택 -->
+                <div class="interest-type">
+                    <div class="interest-option active" onclick="switchInterestType('compound')" data-type="compound"
+                         data-i18n="calculators.finance.save.compound">복리</div>
+                    <div class="interest-option" onclick="switchInterestType('simple')" data-type="simple"
+                         data-i18n="calculators.finance.save.simple">단리</div>
+                </div>
+
+                <!-- 입력 섹션 -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- 월 납입금 -->
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.finance.save.monthly_deposit">
+                            월 납입금
+                        </label>
+                        <div class="input-with-unit">
+                            <input type="number" id="monthlyDeposit" class="h-input" min="0" step="10000"
+                                   onchange="calculateSavings()" onkeyup="calculateSavings()">
+                            <span class="input-unit">원</span>
+                        </div>
+                    </div>
+
+                    <!-- 적금 기간 -->
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.finance.save.period">
+                            적금 기간
+                        </label>
+                        <div class="input-with-unit">
+                            <input type="number" id="period" class="h-input" min="0" max="60"
+                                   onchange="calculateSavings()" onkeyup="calculateSavings()">
+                            <span class="input-unit">개월</span>
+                        </div>
+                    </div>
+
+                    <!-- 연 이자율 -->
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.finance.save.interest_rate">
+                            연 이자율
+                        </label>
+                        <div class="input-with-unit">
+                            <input type="number" id="interestRate" class="h-input" min="0" max="20" step="0.1"
+                                   onchange="calculateSavings()" onkeyup="calculateSavings()">
+                            <span class="input-unit">%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 결과 섹션 -->
+                <div class="result-section">
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <div class="result-label" data-i18n="calculators.finance.save.total_deposit">
+                                총 납입금
+                            </div>
+                            <div class="result-value" id="totalDeposit">0원</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label" data-i18n="calculators.finance.save.total_interest">
+                                총 이자
+                            </div>
+                            <div class="result-value" id="totalInterest">0원</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label" data-i18n="calculators.finance.save.maturity_amount">
+                                만기 수령액
+                            </div>
+                            <div class="result-value" id="maturityAmount">0원</div>
+                        </div>
+                    </div>
+
+                    <div class="tax-info" data-i18n="[html]calculators.finance.save.tax_info">
+                        * 이자소득세 15.4% 공제 전 금액입니다
+                    </div>
+                </div>
+
+                <!-- 적립 현황 -->
+                <div class="timeline">
+                    <div class="timeline-header">
+                        <h3 class="text-xl font-semibold" data-i18n="calculators.finance.save.savings_timeline">
+                            적립 현황
+                        </h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="timeline-table">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="calculators.finance.save.month">기간</th>
+                                    <th data-i18n="calculators.finance.save.deposit_amount">납입금</th>
+                                    <th data-i18n="calculators.finance.save.interest">이자</th>
+                                    <th data-i18n="calculators.finance.save.accumulated_amount">누적 금액</th>
+                                </tr>
+                            </thead>
+                            <tbody id="timelineBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 설명 섹션 -->
+            <div class="h-card mt-8">
+                <h2 class="text-2xl font-semibold mb-4 text-primary" data-i18n="calculators.finance.save.about">
+                    적금 이자 안내
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.finance.save.interest_types">
+                            이자 계산 방식
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.finance.save.interest_description">
+                            - 단리: 원금에 대해서만 이자가 붙음<br>
+                            - 복리: 원금과 이자를 합한 금액에 이자가 붙음<br>
+                            - 이자는 월 단위로 계산됨<br>
+                            - 중도해지 시 약정금리보다 낮은 금리 적용
+                        </p>
+                    </div>
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.finance.save.notes">
+                            참고사항
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.finance.save.notes_description">
+                            - 계산 결과는 예시이며 실제와 다를 수 있음<br>
+                            - 이자소득세 15.4% 공제 전 금액임<br>
+                            - 실제 금리는 금융기관마다 다를 수 있음<br>
+                            - 정확한 상품 조건은 금융기관과 상담하세요
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let interestType = 'compound';
+
+        function switchInterestType(type) {
+            interestType = type;
+            // 활성화된 옵션 스타일 변경
+            document.querySelectorAll('.interest-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            document.querySelector(`[data-type="${type}"]`).classList.add('active');
+            
+            // 재계산
+            calculateSavings();
+        }
+
+        function calculateSavings() {
+            const monthlyDeposit = parseFloat(document.getElementById('monthlyDeposit').value) || 0;
+            const months = parseFloat(document.getElementById('period').value) || 0;
+            const annualRate = parseFloat(document.getElementById('interestRate').value) || 0;
+            
+            if (!monthlyDeposit || !months || !annualRate) return;
+
+            const monthlyRate = annualRate / 12 / 100;
+            let totalDeposit = monthlyDeposit * months;
+            let totalAmount = 0;
+            let timeline = [];
+
+            if (interestType === 'compound') {
+                // 복리 계산
+                let accumulated = 0;
+                for (let i = 1; i <= months; i++) {
+                    const monthInterest = monthlyDeposit * monthlyRate * (months - i + 1);
+                    totalInterest += monthInterest;
+                    accumulated = monthlyDeposit * i + totalInterest;
+                    
+                    timeline.push({
+                        month: i,
+                        deposit: monthlyDeposit,
+                        interest: monthlyDeposit * monthlyRate * (months - i + 1),
+                        accumulated: accumulated
+                    });
+                }
+                totalAmount = totalDeposit + totalInterest;
+            }
+
+            const totalInterest = totalAmount - totalDeposit;
+
+            // 결과 표시
+            document.getElementById('totalDeposit').textContent = 
+                Math.round(totalDeposit).toLocaleString() + '원';
+            document.getElementById('totalInterest').textContent = 
+                Math.round(totalInterest).toLocaleString() + '원';
+            document.getElementById('maturityAmount').textContent = 
+                Math.round(totalAmount).toLocaleString() + '원';
+
+            // 적립 현황 표시
+            const timelineBody = document.getElementById('timelineBody');
+            timelineBody.innerHTML = timeline.map(item => `
+                <tr>
+                    <td class="text-center">${item.month}개월</td>
+                    <td>${Math.round(item.deposit).toLocaleString()}원</td>
+                    <td>${Math.round(item.interest).toLocaleString()}원</td>
+                    <td>${Math.round(item.accumulated).toLocaleString()}원</td>
+                </tr>
+            `).join('');
+        }
+
+        // 초기 계산
+        document.addEventListener('DOMContentLoaded', () => {
+            // 입력 필드에 기본값 설정
+            document.getElementById('monthlyDeposit').value = '500000';
+            document.getElementById('period').value = '24';
+            document.getElementById('interestRate').value = '3.5';
+            // 초기 계산 실행
+            calculateSavings();
+        });
+    </script>
+</body>
+</html>

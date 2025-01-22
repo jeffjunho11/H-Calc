@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-M0BMY9S4Z3"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-M0BMY9S4Z3');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="칼로리 계산기 - 기초대사량과 일일 권장 칼로리를 계산하세요">
+    <title data-i18n="calculators.health.calorie.title">칼로리 계산기</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    
+    <!-- Scripts -->
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script type="module">
+        import Sidebar from '/assets/js/components/Sidebar.js';
+        
+        // DOM이 로드되면 초기화
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 사이드바 초기화 (constructor에서 자동으로 createSidebar 호출)
+            new Sidebar();
+    
+            // 언어 감지 및 i18n 초기화
+            const currentLang = languageDetector.detectLanguage();
+            await initializeI18n(currentLang);
+    
+            // 나머지 코드...
+        });
+    </script>
+
+    <style>
+        @media (min-width: 1024px) {
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+        /* 칼로리 계산기 전용 스타일 */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--h-space-lg);
+            margin-top: var(--h-space-xl);
+        }
+
+        .result-card {
+            background: var(--h-bg-card);
+            border-radius: var(--h-radius-lg);
+            padding: var(--h-space-lg);
+            text-align: center;
+            transition: transform var(--h-transition-normal);
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .result-value {
+            font-size: var(--h-text-4xl);
+            font-weight: var(--h-font-bold);
+            color: var(--h-primary);
+            margin: var(--h-space-md) 0;
+        }
+
+        .result-unit {
+            font-size: var(--h-text-lg);
+            color: var(--h-text-secondary);
+        }
+
+        .activity-levels {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--h-space-md);
+            margin: var(--h-space-lg) 0;
+        }
+
+        .activity-level {
+            background: var(--h-bg-card);
+            padding: var(--h-space-md);
+            border-radius: var(--h-radius-md);
+            cursor: pointer;
+            transition: all var(--h-transition-fast);
+            border: 2px solid transparent;
+        }
+
+        .activity-level:hover {
+            background: var(--h-primary-light);
+        }
+
+        .activity-level.active {
+            border-color: var(--h-primary);
+            background: var(--h-primary-light);
+        }
+
+        .activity-level-title {
+            font-weight: var(--h-font-medium);
+            color: var(--h-primary);
+            margin-bottom: var(--h-space-xs);
+        }
+
+        .activity-level-desc {
+            font-size: var(--h-text-sm);
+            color: var(--h-text-secondary);
+        }
+
+        .nutrition-chart {
+            background: var(--h-bg-card);
+            border-radius: var(--h-radius-lg);
+            padding: var(--h-space-lg);
+            margin-top: var(--h-space-xl);
+        }
+
+        .chart-bar {
+            height: 30px;
+            background: var(--h-primary-light);
+            border-radius: var(--h-radius-full);
+            margin: var(--h-space-sm) 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-bar-fill {
+            height: 100%;
+            background: var(--h-primary);
+            border-radius: var(--h-radius-full);
+            transition: width var(--h-transition-normal);
+        }
+
+        .chart-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: var(--h-text-sm);
+            color: var(--h-text-secondary);
+            margin-top: var(--h-space-xs);
+        }
+
+        .goals-section {
+            margin-top: var(--h-space-xl);
+        }
+
+        .goals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: var(--h-space-md);
+        }
+
+        .goal-card {
+            background: var(--h-bg-card);
+            padding: var(--h-space-md);
+            border-radius: var(--h-radius-md);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--h-transition-fast);
+            border: 2px solid transparent;
+        }
+
+        .goal-card:hover {
+            background: var(--h-primary-light);
+        }
+
+        .goal-card.active {
+            border-color: var(--h-primary);
+            background: var(--h-primary-light);
+        }
+
+        .goal-value {
+            font-size: var(--h-text-xl);
+            font-weight: var(--h-font-medium);
+            color: var(--h-primary);
+            margin-top: var(--h-space-sm);
+        }
+
+        @media (max-width: 768px) {
+            .activity-levels {
+                grid-template-columns: 1fr;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <!-- 메인 컨텐츠 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 타이틀 섹션 -->
+            <div class="h-card text-center mb-8">
+                <h1 class="text-4xl text-primary mb-4 flex items-center justify-center gap-3">
+                    <span data-i18n="calculators.health.calorie.title">칼로리 계산기</span>
+                    <span>🍎</span>
+                </h1>
+                <p class="text-secondary" data-i18n="calculators.health.calorie.description">
+                    기초대사량과 일일 권장 칼로리를 계산하세요
+                </p>
+            </div>
+
+            <!-- 계산기 섹션 -->
+            <div class="h-card">
+                <!-- 기본 정보 입력 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="common.gender">성별</label>
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2">
+                                <input type="radio" name="gender" value="male" checked onchange="calculateCalories()">
+                                <span data-i18n="common.male">남성</span>
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="radio" name="gender" value="female" onchange="calculateCalories()">
+                                <span data-i18n="common.female">여성</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="common.age">나이</label>
+                        <div class="flex gap-3">
+                            <input type="number" id="age" class="h-input"
+                                   min="15" max="100"
+                                   data-i18n-placeholder="common.enter_age"
+                                   oninput="calculateCalories()">
+                            <span class="text-secondary">세</span>
+                        </div>
+                    </div>
+
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="common.height">키</label>
+                        <div class="flex gap-3">
+                            <input type="number" id="height" class="h-input"
+                                   min="100" max="250" step="0.1"
+                                   data-i18n-placeholder="common.enter_height"
+                                   oninput="calculateCalories()">
+                            <span class="text-secondary">cm</span>
+                        </div>
+                    </div>
+
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="common.weight">체중</label>
+                        <div class="flex gap-3">
+                            <input type="number" id="weight" class="h-input"
+                                   min="20" max="200" step="0.1"
+                                   data-i18n-placeholder="common.enter_weight"
+                                   oninput="calculateCalories()">
+                            <span class="text-secondary">kg</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 활동 수준 선택 -->
+                <div class="activity-levels">
+                    <div class="activity-level" data-level="1.2" onclick="selectActivityLevel(this)">
+                        <div class="activity-level-title" data-i18n="calculators.health.calorie.activity.sedentary">
+                            거의 움직이지 않음
+                        </div>
+                        <div class="activity-level-desc" data-i18n="calculators.health.calorie.activity.sedentary_desc">
+                            좌식 생활, 운동 거의 안 함
+                        </div>
+                    </div>
+
+                    <div class="activity-level" data-level="1.375" onclick="selectActivityLevel(this)">
+                        <div class="activity-level-title" data-i18n="calculators.health.calorie.activity.light">
+                            가벼운 활동
+                        </div>
+                        <div class="activity-level-desc" data-i18n="calculators.health.calorie.activity.light_desc">
+                            주 1-3회 운동
+                        </div>
+                    </div>
+
+                    <div class="activity-level active" data-level="1.55" onclick="selectActivityLevel(this)">
+                        <div class="activity-level-title" data-i18n="calculators.health.calorie.activity.moderate">
+                            보통 활동
+                        </div>
+                        <div class="activity-level-desc" data-i18n="calculators.health.calorie.activity.moderate_desc">
+                            주 3-5회 운동
+                        </div>
+                    </div>
+
+                    <div class="activity-level" data-level="1.725" onclick="selectActivityLevel(this)">
+                        <div class="activity-level-title" data-i18n="calculators.health.calorie.activity.high">
+                            활발한 활동
+                        </div>
+                        <div class="activity-level-desc" data-i18n="calculators.health.calorie.activity.high_desc">
+                            주 6-7회 운동
+                        </div>
+                    </div>
+
+                    <div class="activity-level" data-level="1.9" onclick="selectActivityLevel(this)">
+                        <div class="activity-level-title" data-i18n="calculators.health.calorie.activity.very_high">
+                            매우 활발한 활동
+                        </div>
+                        <div class="activity-level-desc" data-i18n="calculators.health.calorie.activity.very_high_desc">
+                            하루 2회 이상 운동
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 결과 섹션 -->
+                <div class="results-grid">
+                    <!-- 기초 대사량 -->
+                    <div class="result-card">
+                        <h3 class="text-lg font-medium" data-i18n="calculators.health.calorie.bmr">
+                            기초 대사량
+                        </h3>
+                        <div class="result-value">
+                            <span id="bmrValue">0</span>
+                            <span class="result-unit">kcal</span>
+                        </div>
+                        <p class="text-sm text-secondary" data-i18n="calculators.health.calorie.bmr_desc">
+                            아무것도 하지 않을 때 소모되는 열량
+                        </p>
+                    </div>
+
+                    <!-- 활동 대사량 -->
+                    <div class="result-card">
+                        <h3 class="text-lg font-medium" data-i18n="calculators.health.calorie.tdee">
+                            활동 대사량
+                        </h3>
+                        <div class="result-value">
+                            <span id="tdeeValue">0</span>
+                            <span class="result-unit">kcal</span>
+                        </div>
+                        <p class="text-sm text-secondary" data-i18n="calculators.health.calorie.tdee_desc">
+                            일상 생활에서 소모되는 총 열량
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 목표별 칼로리 -->
+                <div class="goals-section">
+                    <h3 class="text-xl font-medium mb-4" data-i18n="calculators.health.calorie.goals">
+                        목표별 권장 칼로리
+                    </h3>
+                    <div class="goals-grid">
+                        <div class="goal-card" onclick="selectGoal(this, -20)">
+                            <div data-i18n="calculators.health.calorie.goal.loss">체중 감량</div>
+                            <div class="goal-value" id="weightLossGoal">0 kcal</div>
+                            <div class="text-sm text-secondary">-20%</div>
+                        </div>
+
+                        <div class="goal-card active" onclick="selectGoal(this, 0)">
+                            <div data-i18n="calculators.health.calorie.goal.maintain">체중 유지</div>
+                            <div class="goal-value" id="weightMaintainGoal">0 kcal</div>
+                            <div class="text-sm text-secondary">+0%</div>
+                        </div>
+
+                        <div class="goal-card" onclick="selectGoal(this, 20)">
+                            <div data-i18n="calculators.health.calorie.goal.gain">체중 증가</div>
+                            <div class="goal-value" id="weightGainGoal">0 kcal</div>
+                            <div class="text-sm text-secondary">+20%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 영양소 분배 -->
+                <div class="nutrition-chart">
+                    <h3 class="text-xl font-medium mb-4" data-i18n="calculators.health.calorie.nutrition">
+                        권장 영양소 분배
+                    </h3>
+                    <div class="space-y-4">
+                        <!-- 탄수화물 -->
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span data-i18n="calculators.health.calorie.nutrition.carbs">탄수화물</span>
+                                <span id="carbsValue">0g</span>
+                            </div>
+                            <div class="chart-bar">
+                                <div class="chart-bar-fill" style="width: 50%;"></div>
+                            </div>
+                            <div class="chart-label">
+                                <span>50%</span>
+                                <span id="carbsCalories">0 kcal</span>
+                            </div>
+                        </div>
+
+                        <!-- 단백질 -->
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span data-i18n="calculators.health.calorie.nutrition.protein">단백질</span>
+                                <span id="proteinValue">0g</span>
+                            </div>
+                            <div class="chart-bar">
+                                <div class="chart-bar-fill" style="width: 30%;"></div>
+                            </div>
+                            <div class="chart-label">
+                                <span>30%</span>
+                                <span id="proteinCalories">0 kcal</span>
+                            </div>
+                        </div>
+
+                        <!-- 지방 -->
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span data-i18n="calculators.health.calorie.nutrition.fat">지방</span>
+                                <span id="fatValue">0g</span>
+                            </div>
+                            <div class="chart-bar">
+                                <div class="chart-bar-fill" style="width: 20%;"></div>
+                            </div>
+                            <div class="chart-label">
+                                <span>20%</span>
+                                <span id="fatCalories">0 kcal</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 설명 섹션 -->
+            <div class="h-card mt-8">
+                <h2 class="text-2xl font-semibold mb-4 text-primary" data-i18n="calculators.health.calorie.about">
+                    칼로리 계산에 대하여
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.health.calorie.calculation">
+                            계산 방법
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.health.calorie.calculation_desc">
+                            - 해리스-베네딕트 공식 사용<br>
+                            - 기초대사량(BMR) 계산<br>
+                            - 활동 수준에 따른 보정<br>
+                            - 목표에 따른 칼로리 조정
+                        </p>
+                    </div>
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.health.calorie.notes">
+                            참고사항
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.health.calorie.notes_desc">
+                            - 계산된 값은 참고용입니다<br>
+                            - 개인차가 있을 수 있습니다<br>
+                            - 급격한 체중 변화는 피하세요<br>
+                            - 전문가와 상담하세요
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 현재 선택된 활동 수준
+        let selectedActivityLevel = 1.55;
+        // 현재 선택된 목표
+        let selectedGoalPercent = 0;
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // i18n 초기화
+                await initializeI18n();
+                
+                // 언어 선택기 추가
+                const langSelectorWrapper = document.createElement('div');
+                langSelectorWrapper.className = 'lang-selector-wrapper';
+                langSelectorWrapper.appendChild(createLanguageSelector());
+                document.body.appendChild(langSelectorWrapper);
+
+                // 사이드바 초기화
+                new Sidebar();
+
+                // 초기 계산
+                calculateCalories();
+            } catch (error) {
+                console.error('Failed to initialize:', error);
+            }
+        });
+
+        // 활동 수준 선택
+        function selectActivityLevel(element) {
+            document.querySelectorAll('.activity-level').forEach(el => {
+                el.classList.remove('active');
+            });
+            element.classList.add('active');
+            selectedActivityLevel = parseFloat(element.dataset.level);
+            calculateCalories();
+        }
+
+        // 목표 선택
+        function selectGoal(element, percent) {
+            document.querySelectorAll('.goal-card').forEach(el => {
+                el.classList.remove('active');
+            });
+            element.classList.add('active');
+            selectedGoalPercent = percent;
+            calculateCalories();
+        }
+
+        // 칼로리 계산
+        function calculateCalories() {
+            // 입력값 가져오기
+            const gender = document.querySelector('input[name="gender"]:checked').value;
+            const age = parseFloat(document.getElementById('age').value) || 25;
+            const height = parseFloat(document.getElementById('height').value) || 170;
+            const weight = parseFloat(document.getElementById('weight').value) || 65;
+
+            // BMR 계산 (해리스-베네딕트 공식)
+            let bmr;
+            if (gender === 'male') {
+                bmr = 66 + (13.7 * weight) + (5 * height) - (6.8 * age);
+            } else {
+                bmr = 655 + (9.6 * weight) + (1.8 * height) - (4.7 * age);
+            }
+
+            // 활동 대사량 계산
+            const tdee = bmr * selectedActivityLevel;
+
+            // 목표별 칼로리 계산
+            const weightLossCalories = tdee * 0.8;    // 감량 (-20%)
+            const weightGainCalories = tdee * 1.2;    // 증가 (+20%)
+
+            // 결과 표시
+            document.getElementById('bmrValue').textContent = Math.round(bmr);
+            document.getElementById('tdeeValue').textContent = Math.round(tdee);
+            document.getElementById('weightLossGoal').textContent = Math.round(weightLossCalories) + ' kcal';
+            document.getElementById('weightMaintainGoal').textContent = Math.round(tdee) + ' kcal';
+            document.getElementById('weightGainGoal').textContent = Math.round(weightGainCalories) + ' kcal';
+
+            // 현재 목표에 따른 칼로리
+            const targetCalories = tdee * (1 + selectedGoalPercent/100);
+
+            // 영양소 분배 계산
+            calculateNutrition(targetCalories);
+        }
+
+        // 영양소 분배 계산
+        function calculateNutrition(calories) {
+            // 탄수화물 (50%, 1g = 4kcal)
+            const carbsCalories = calories * 0.5;
+            const carbsGrams = Math.round(carbsCalories / 4);
+            document.getElementById('carbsValue').textContent = carbsGrams + 'g';
+            document.getElementById('carbsCalories').textContent = Math.round(carbsCalories) + ' kcal';
+
+            // 단백질 (30%, 1g = 4kcal)
+            const proteinCalories = calories * 0.3;
+            const proteinGrams = Math.round(proteinCalories / 4);
+            document.getElementById('proteinValue').textContent = proteinGrams + 'g';
+            document.getElementById('proteinCalories').textContent = Math.round(proteinCalories) + ' kcal';
+
+            // 지방 (20%, 1g = 9kcal)
+            const fatCalories = calories * 0.2;
+            const fatGrams = Math.round(fatCalories / 9);
+            document.getElementById('fatValue').textContent = fatGrams + 'g';
+            document.getElementById('fatCalories').textContent = Math.round(fatCalories) + ' kcal';
+        }
+    </script>
+</body>
+</html>

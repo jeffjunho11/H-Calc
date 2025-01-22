@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-M0BMY9S4Z3"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+    
+        gtag('config', 'G-M0BMY9S4Z3');
+        </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="난수 생성기 - 다양한 범위의 무작위 숫자 생성">
+    <title data-i18n="calculators.etc.rand.title">난수 생성기</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    
+    <!-- Scripts -->
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script type="module">
+        import Sidebar from '/assets/js/components/Sidebar.js';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            new Sidebar();
+            const currentLang = languageDetector.detectLanguage();
+            await initializeI18n(currentLang);
+        });
+    </script>
+
+    <style>
+        @media (min-width: 1024px) {
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+
+        .random-type {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .type-option {
+            flex: 1;
+            text-align: center;
+            padding: 1rem;
+            border: 2px solid var(--h-border-light);
+            border-radius: var(--h-radius-md);
+            cursor: pointer;
+            transition: all var(--h-transition-fast);
+        }
+
+        .type-option.active {
+            border-color: var(--h-primary);
+            background-color: var(--h-primary-light);
+            color: var(--h-primary);
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .input-label {
+            font-weight: var(--h-font-medium);
+            color: var(--h-text-secondary);
+        }
+
+        .generated-numbers {
+            margin: 2rem 0;
+            padding: 2rem;
+            background: var(--h-primary-light);
+            border-radius: var(--h-radius-lg);
+            text-align: center;
+            font-family: monospace;
+            font-size: 1.5rem;
+        }
+
+        .number-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .number-item {
+            padding: 0.5rem 1rem;
+            background: white;
+            border-radius: var(--h-radius-md);
+            box-shadow: var(--h-shadow-sm);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .option-card {
+            padding: 1rem;
+            background: var(--h-bg-card);
+            border-radius: var(--h-radius-md);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .option-label {
+            font-weight: var(--h-font-medium);
+            color: var(--h-text-secondary);
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <main class="main-content">
+        <div class="container">
+            <!-- 타이틀 섹션 -->
+            <div class="h-card text-center mb-8">
+                <h1 class="text-4xl text-primary mb-4 flex items-center justify-center gap-3">
+                    <span data-i18n="calculators.etc.rand.title">난수 생성기</span>
+                    <span>🎲</span>
+                </h1>
+                <p class="text-secondary" data-i18n="calculators.etc.rand.description">
+                    원하는 범위의 무작위 숫자를 생성하세요
+                </p>
+            </div>
+
+            <!-- 난수 생성기 -->
+            <div class="h-card">
+                <!-- 생성 타입 선택 -->
+                <div class="random-type">
+                    <div class="type-option active" onclick="switchType('integer')" data-type="integer"
+                         data-i18n="calculators.etc.rand.integer">정수</div>
+                    <div class="type-option" onclick="switchType('decimal')" data-type="decimal"
+                         data-i18n="calculators.etc.rand.decimal">소수</div>
+                </div>
+
+                <!-- 옵션 설정 -->
+                <div class="options-grid">
+                    <!-- 범위 설정 -->
+                    <div class="option-card">
+                        <div class="input-group">
+                            <label class="input-label" data-i18n="calculators.etc.rand.min_value">최솟값</label>
+                            <input type="number" id="minValue" class="h-input" value="1">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label" data-i18n="calculators.etc.rand.max_value">최댓값</label>
+                            <input type="number" id="maxValue" class="h-input" value="100">
+                        </div>
+                    </div>
+
+                    <!-- 생성 옵션 -->
+                    <div class="option-card">
+                        <div class="input-group">
+                            <label class="input-label" data-i18n="calculators.etc.rand.count">생성 개수</label>
+                            <input type="number" id="count" class="h-input" value="5" min="1" max="100">
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label" data-i18n="calculators.etc.rand.decimal_places">소수점 자리수</label>
+                            <input type="number" id="decimalPlaces" class="h-input" value="2" min="0" max="10" disabled>
+                        </div>
+                    </div>
+
+                    <!-- 중복 허용 여부 -->
+                    <div class="option-card">
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" id="allowDuplicates">
+                            <span data-i18n="calculators.etc.rand.allow_duplicates">중복 허용</span>
+                        </label>
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" id="sortNumbers">
+                            <span data-i18n="calculators.etc.rand.sort_numbers">정렬하여 표시</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 생성 버튼 -->
+                <button class="h-btn h-btn-primary w-full" onclick="generateNumbers()"
+                        data-i18n="calculators.etc.rand.generate">생성하기</button>
+
+                <!-- 결과 표시 -->
+                <div id="result" class="generated-numbers" style="display: none;">
+                    <div class="text-lg mb-4" data-i18n="calculators.etc.rand.result">생성된 숫자</div>
+                    <div id="numberList" class="number-list"></div>
+                </div>
+            </div>
+
+            <!-- 설명 섹션 -->
+            <div class="h-card mt-8">
+                <h2 class="text-2xl font-semibold mb-4 text-primary" data-i18n="calculators.etc.rand.about">
+                    난수 생성 안내
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.etc.rand.features">
+                            기능 설명
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.etc.rand.features_description">
+                            - 정수 또는 소수 난수 생성<br>
+                            - 범위 지정 가능 (최소값 ~ 최대값)<br>
+                            - 여러 개의 난수 동시 생성<br>
+                            - 중복 허용/금지 선택 가능<br>
+                            - 정렬 옵션 제공
+                        </p>
+                    </div>
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.etc.rand.notes">
+                            참고사항
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.etc.rand.notes_description">
+                            - 최대 100개까지 생성 가능<br>
+                            - 소수점 최대 10자리까지 표시<br>
+                            - 중복 불가 설정 시 범위가 좁으면 생성 개수 제한<br>
+                            - 생성된 난수는 암호화 용도로 부적합
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentType = 'integer';
+
+        function switchType(type) {
+            currentType = type;
+            document.querySelectorAll('.type-option').forEach(option => {
+                option.classList.toggle('active', option.dataset.type === type);
+            });
+            
+            // 소수점 자리수 입력 필드 활성화/비활성화
+            document.getElementById('decimalPlaces').disabled = type === 'integer';
+        }
+
+        function generateNumbers() {
+            const min = parseFloat(document.getElementById('minValue').value);
+            const max = parseFloat(document.getElementById('maxValue').value);
+            const count = parseInt(document.getElementById('count').value);
+            const decimalPlaces = parseInt(document.getElementById('decimalPlaces').value);
+            const allowDuplicates = document.getElementById('allowDuplicates').checked;
+            const sortNumbers = document.getElementById('sortNumbers').checked;
+
+            // 입력값 검증
+            if (isNaN(min) || isNaN(max) || isNaN(count) || min >= max || count < 1) {
+                alert('올바른 값을 입력해주세요.');
+                return;
+            }
+
+            let numbers = [];
+            const maxAttempts = count * 10; // 중복 불허 시 무한 루프 방지
+            let attempts = 0;
+
+            while (numbers.length < count && attempts < maxAttempts) {
+                let number;
+                if (currentType === 'integer') {
+                    number = Math.floor(Math.random() * (max - min + 1)) + min;
+                } else {
+                    number = Math.random() * (max - min) + min;
+                    number = parseFloat(number.toFixed(decimalPlaces));
+                }
+
+                if (allowDuplicates || !numbers.includes(number)) {
+                    numbers.push(number);
+                }
+                attempts++;
+            }
+
+            if (sortNumbers) {
+                numbers.sort((a, b) => a - b);
+            }
+
+            // 결과 표시
+            const numberList = document.getElementById('numberList');
+            numberList.innerHTML = numbers.map(num => 
+                `<div class="number-item">${num}</div>`
+            ).join('');
+
+            document.getElementById('result').style.display = 'block';
+        }
+
+        // 초기 생성
+        document.addEventListener('DOMContentLoaded', generateNumbers);
+
+        // Enter 키 처리
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                generateNumbers();
+            }
+        });
+    </script>
+</body>
+</html>

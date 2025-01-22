@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="부가세 계산기 - 부가가치세 계산">
+    <title data-i18n="calculators.finance.vat.title">부가세 계산기</title>
+    
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-M0BMY9S4Z3"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+    
+        gtag('config', 'G-M0BMY9S4Z3');
+        </script>
+        
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    
+    <!-- Scripts -->
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script type="module">
+        import Sidebar from '/assets/js/components/Sidebar.js';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            new Sidebar();
+            const currentLang = languageDetector.detectLanguage();
+            await initializeI18n(currentLang);
+        });
+    </script>
+
+    <style>
+        @media (min-width: 1024px) {
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+
+        .input-with-unit {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-with-unit input {
+            padding-right: 4rem;
+        }
+
+        .input-unit {
+            position: absolute;
+            right: 1rem;
+            color: var(--h-text-secondary);
+        }
+
+        .calculator-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--h-border-light);
+            padding-bottom: 1rem;
+        }
+
+        .calculator-tab {
+            padding: 0.5rem 1rem;
+            border-radius: var(--h-radius-md);
+            cursor: pointer;
+            transition: all var(--h-transition-fast);
+        }
+
+        .calculator-tab.active {
+            background-color: var(--h-primary);
+            color: white;
+        }
+
+        .result-label {
+            font-size: var(--h-text-sm);
+            color: var(--h-text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-value {
+            font-size: var(--h-text-xl);
+            font-weight: var(--h-font-bold);
+            color: var(--h-primary);
+        }
+
+        .tax-rate-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tax-rate-option {
+            flex: 1;
+            text-align: center;
+            padding: 1rem;
+            border: 2px solid var(--h-border-light);
+            border-radius: var(--h-radius-md);
+            cursor: pointer;
+            transition: all var(--h-transition-fast);
+        }
+
+        .tax-rate-option.active {
+            border-color: var(--h-primary);
+            background-color: var(--h-primary-light);
+        }
+
+        .tax-rate-value {
+            font-size: var(--h-text-xl);
+            font-weight: var(--h-font-bold);
+            color: var(--h-primary);
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <main class="main-content">
+        <div class="container">
+            <!-- 타이틀 섹션 -->
+            <div class="h-card text-center mb-8">
+                <h1 class="text-4xl text-primary mb-4 flex items-center justify-center gap-3">
+                    <span data-i18n="calculators.finance.vat.title">부가세 계산기</span>
+                    <span>🧾</span>
+                </h1>
+                <p class="text-secondary" data-i18n="calculators.finance.vat.description">
+                    매출/매입에 대한 부가가치세를 쉽고 정확하게 계산하세요
+                </p>
+            </div>
+
+            <!-- 계산기 섹션 -->
+            <div class="h-card">
+                <!-- 세율 선택 -->
+                <div class="tax-rate-selector">
+                    <div class="tax-rate-option active" data-rate="10" onclick="selectTaxRate(this)">
+                        <div class="text-sm mb-2" data-i18n="calculators.finance.vat.standard_rate">표준세율</div>
+                        <div class="tax-rate-value">10%</div>
+                    </div>
+                    <div class="tax-rate-option" data-rate="0" onclick="selectTaxRate(this)">
+                        <div class="text-sm mb-2" data-i18n="calculators.finance.vat.zero_rate">영세율</div>
+                        <div class="tax-rate-value">0%</div>
+                    </div>
+                </div>
+
+                <!-- 계산 모드 탭 -->
+                <div class="calculator-tabs">
+                    <div class="calculator-tab active" onclick="switchMode('supply')" data-i18n="calculators.finance.vat.supply_amount">
+                        공급가액
+                    </div>
+                    <div class="calculator-tab" onclick="switchMode('total')" data-i18n="calculators.finance.vat.total_amount">
+                        합계금액
+                    </div>
+                </div>
+
+                <!-- 입력 필드 -->
+                <div class="h-input-group">
+                    <label class="h-input-label" id="amountLabel" data-i18n="calculators.finance.vat.supply_amount">
+                        공급가액
+                    </label>
+                    <div class="input-with-unit">
+                        <input type="number" id="amount" class="h-input" min="0" step="1000"
+                               onchange="calculateVAT()" onkeyup="calculateVAT()">
+                        <span class="input-unit">원</span>
+                    </div>
+                </div>
+
+                <!-- 결과 표시 -->
+                <div class="result-box">
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <div class="result-label" data-i18n="calculators.finance.vat.supply_amount">공급가액</div>
+                            <div class="result-value" id="supplyAmount">0원</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label" data-i18n="calculators.finance.vat.vat_amount">부가세</div>
+                            <div class="result-value" id="vatAmount">0원</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label" data-i18n="calculators.finance.vat.total_amount">합계금액</div>
+                            <div class="result-value" id="totalAmount">0원</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 설명 섹션 -->
+            <div class="h-card mt-8">
+                <h2 class="text-2xl font-semibold mb-4 text-primary" data-i18n="calculators.finance.vat.about">
+                    부가가치세 안내
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.finance.vat.calculation_method">
+                            계산 방법
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.finance.vat.calculation_description">
+                            - 부가가치세 = 공급가액 × 세율(10%)<br>
+                            - 합계금액 = 공급가액 + 부가가치세<br>
+                            - 공급가액 = 합계금액 ÷ 1.1 (세율 10% 기준)<br>
+                            - 영세율의 경우 부가가치세가 0%
+                        </p>
+                    </div>
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.finance.vat.notes">
+                            참고사항
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.finance.vat.notes_description">
+                            - 표준세율은 10%가 적용됩니다<br>
+                            - 영세율은 수출 등 특정 거래에 적용<br>
+                            - 면세는 부가가치세가 면제되는 경우<br>
+                            - 정확한 세금 관련 문의는 세무사와 상담하세요
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentMode = 'supply';
+        let currentRate = 10;
+
+        function selectTaxRate(element) {
+            // 기존 선택 제거
+            document.querySelectorAll('.tax-rate-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
+            // 새로운 선택 추가
+            element.classList.add('active');
+            // 세율 업데이트
+            currentRate = parseFloat(element.dataset.rate);
+            // 재계산
+            calculateVAT();
+        }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            // 탭 스타일 업데이트
+            document.querySelectorAll('.calculator-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            // 라벨 업데이트
+            const label = document.getElementById('amountLabel');
+            label.textContent = mode === 'supply' ? 
+                i18n.t('calculators.finance.vat.supply_amount') : 
+                i18n.t('calculators.finance.vat.total_amount');
+            // 재계산
+            calculateVAT();
+        }
+
+        function calculateVAT() {
+            const amount = parseFloat(document.getElementById('amount').value) || 0;
+            let supplyAmount, vatAmount, totalAmount;
+
+            if (currentMode === 'supply') {
+                supplyAmount = amount;
+                vatAmount = amount * (currentRate / 100);
+                totalAmount = supplyAmount + vatAmount;
+            } else {
+                totalAmount = amount;
+                supplyAmount = amount / (1 + (currentRate / 100));
+                vatAmount = totalAmount - supplyAmount;
+            }
+
+            // 결과 표시
+            document.getElementById('supplyAmount').textContent = Math.round(supplyAmount).toLocaleString() + '원';
+            document.getElementById('vatAmount').textContent = Math.round(vatAmount).toLocaleString() + '원';
+            document.getElementById('totalAmount').textContent = Math.round(totalAmount).toLocaleString() + '원';
+        }
+    </script>
+</body>
+</html>

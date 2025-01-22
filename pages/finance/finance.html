@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="금융 계산기 - 다양한 금융 계산을 한 번에">
+    <title data-i18n="calculators.finance.finance.title">금융 계산기</title>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-M0BMY9S4Z3"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-M0BMY9S4Z3');
+    </script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    
+    <!-- Scripts -->
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script type="module">
+        import Sidebar from '/assets/js/components/Sidebar.js';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            new Sidebar();
+            const currentLang = languageDetector.detectLanguage();
+            await initializeI18n(currentLang);
+        });
+    </script>
+
+    <style>
+        @media (min-width: 1024px) {
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+        
+        .finance-calculator {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .calculator-section {
+            background: var(--h-bg-card);
+            border-radius: var(--h-radius-lg);
+            padding: 2rem;
+            box-shadow: var(--h-shadow-md);
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .calculator-item {
+            padding: 1.5rem;
+            border: 1px solid var(--h-border-light);
+            border-radius: var(--h-radius-md);
+            transition: all var(--h-transition-normal);
+        }
+
+        .calculator-item:hover {
+            border-color: var(--h-primary);
+            transform: translateY(-2px);
+            box-shadow: var(--h-shadow-sm);
+        }
+
+        .result-display {
+            font-size: 1.5rem;
+            font-weight: var(--h-font-bold);
+            color: var(--h-primary);
+            text-align: right;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--h-primary-light);
+            border-radius: var(--h-radius-md);
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <main class="main-content">
+        <div class="container">
+            <!-- 타이틀 섹션 -->
+            <div class="h-card text-center mb-8">
+                <h1 class="text-4xl text-primary mb-4 flex items-center justify-center gap-3">
+                    <span data-i18n="calculators.finance.finance.title">금융 계산기</span>
+                    <span>💰</span>
+                </h1>
+                <p class="text-secondary" data-i18n="calculators.finance.finance.description">
+                    다양한 금융 계산을 한 번에 해결하세요
+                </p>
+            </div>
+
+            <!-- 계산기 섹션 -->
+            <div class="finance-calculator">
+                <!-- 대출 계산 섹션 -->
+                <div class="calculator-section">
+                    <h2 class="text-xl font-semibold mb-4" data-i18n="calculators.finance.finance.loan_section">
+                        대출 계산
+                    </h2>
+                    <div class="calculator-grid">
+                        <div class="calculator-item">
+                            <div class="h-input-group">
+                                <label class="h-input-label" data-i18n="calculators.finance.finance.loan_amount">
+                                    대출금액
+                                </label>
+                                <input type="number" id="loanAmount" class="h-input" min="0">
+                            </div>
+                            <div class="h-input-group">
+                                <label class="h-input-label" data-i18n="calculators.finance.finance.interest_rate">
+                                    연이자율 (%)
+                                </label>
+                                <input type="number" id="interestRate" class="h-input" min="0" step="0.1">
+                            </div>
+                            <div class="h-input-group">
+                                <label class="h-input-label" data-i18n="calculators.finance.finance.loan_period">
+                                    대출기간 (년)
+                                </label>
+                                <input type="number" id="loanPeriod" class="h-input" min="0">
+                            </div>
+                            <div class="result-display" id="monthlyPayment">0 원</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 저축 계산 섹션 -->
+                <div class="calculator-section">
+                    <h2 class="text-xl font-semibold mb-4" data-i18n="calculators.finance.finance.savings_section">
+                        저축 계산
+                    </h2>
+                    <div class="calculator-grid">
+                        <div class="calculator-item">
+                            <div class="h-input-group">
+                                <label class="h-input-label" data-i18n="calculators.finance.finance.monthly_deposit">
+                                    월 납입액
+                                </label>
+                                <input type="number" id="monthlyDeposit" class="h-input" min="0">
+                            </div>
+                            <div class="h-input-group">
+                                <label class="h-input-label" data-i18n="calculators.finance.finance.savings_period">
+                                    저축기간 (년)
+                                </label>
+                                <input type="number" id="savingsPeriod" class="h-input" min="0">
+                            </div>
+                            <div class="h-input-group">
+                                <label class="h-input-label" data-i18n="calculators.finance.finance.interest_rate">
+                                    연이자율 (%)
+                                </label>
+                                <input type="number" id="savingsRate" class="h-input" min="0" step="0.1">
+                            </div>
+                            <div class="result-display" id="totalSavings">0 원</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 도움말 섹션 -->
+            <div class="h-card mt-8">
+                <h2 class="text-2xl font-semibold mb-4 text-primary" data-i18n="calculators.finance.finance.help_section">
+                    도움말
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.finance.finance.loan_help_title">
+                            대출 계산 도움말
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.finance.finance.loan_help_description">
+                            - 대출금액: 실제 대출받을 금액을 입력하세요<br>
+                            - 연이자율: 연간 이자율을 %로 입력하세요<br>
+                            - 대출기간: 상환할 기간을 년 단위로 입력하세요<br>
+                            - 계산된 월 상환금은 원리금균등상환 방식 기준입니다
+                        </p>
+                    </div>
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.finance.finance.savings_help_title">
+                            저축 계산 도움말
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.finance.finance.savings_help_description">
+                            - 월 납입액: 매월 저축할 금액을 입력하세요<br>
+                            - 저축기간: 저축할 기간을 년 단위로 입력하세요<br>
+                            - 연이자율: 연간 이자율을 %로 입력하세요<br>
+                            - 이자는 월 복리로 계산됩니다
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 대출 계산 함수
+        function calculateLoan() {
+            const amount = parseFloat(document.getElementById('loanAmount').value) || 0;
+            const rate = parseFloat(document.getElementById('interestRate').value) || 0;
+            const years = parseFloat(document.getElementById('loanPeriod').value) || 0;
+            
+            if (amount && rate && years) {
+                const monthlyRate = rate / 12 / 100;
+                const numberOfPayments = years * 12;
+                const monthlyPayment = amount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments) 
+                    / (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
+                
+                document.getElementById('monthlyPayment').textContent = 
+                    Math.round(monthlyPayment).toLocaleString() + ' 원';
+            }
+        }
+
+        // 저축 계산 함수
+        function calculateSavings() {
+            const monthly = parseFloat(document.getElementById('monthlyDeposit').value) || 0;
+            const years = parseFloat(document.getElementById('savingsPeriod').value) || 0;
+            const rate = parseFloat(document.getElementById('savingsRate').value) || 0;
+            
+            if (monthly && years && rate) {
+                const monthlyRate = rate / 12 / 100;
+                const months = years * 12;
+                let total = 0;
+                
+                for (let i = 0; i < months; i++) {
+                    total += monthly;
+                    total *= (1 + monthlyRate);
+                }
+                
+                document.getElementById('totalSavings').textContent = 
+                    Math.round(total).toLocaleString() + ' 원';
+            }
+        }
+
+        // 이벤트 리스너 설정
+        document.addEventListener('DOMContentLoaded', () => {
+            // 대출 계산기 입력 이벤트
+            ['loanAmount', 'interestRate', 'loanPeriod'].forEach(id => {
+                document.getElementById(id).addEventListener('input', calculateLoan);
+            });
+
+            // 저축 계산기 입력 이벤트
+            ['monthlyDeposit', 'savingsPeriod', 'savingsRate'].forEach(id => {
+                document.getElementById(id).addEventListener('input', calculateSavings);
+            });
+        });
+    </script>
+</body>
+</html>

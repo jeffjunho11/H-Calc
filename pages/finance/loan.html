@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="대출 이자 계산기 - 원리금 상환 계획 계산">
+    <title data-i18n="calculators.finance.loan.title">대출 이자 계산기</title>
+    
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-M0BMY9S4Z3"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+    
+        gtag('config', 'G-M0BMY9S4Z3');
+        </script>
+        
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    
+    <!-- Scripts -->
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script type="module">
+        import Sidebar from '/assets/js/components/Sidebar.js';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            new Sidebar();
+            const currentLang = languageDetector.detectLanguage();
+            await initializeI18n(currentLang);
+        });
+    </script>
+
+    <style>
+        @media (min-width: 1024px) {
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+
+        .input-with-unit {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-with-unit input {
+            padding-right: 4rem;
+        }
+
+        .input-unit {
+            position: absolute;
+            right: 1rem;
+            color: var(--h-text-secondary);
+        }
+
+        .repayment-type {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .repayment-option {
+            flex: 1;
+            text-align: center;
+            padding: 1rem;
+            border: 2px solid var(--h-border-light);
+            border-radius: var(--h-radius-md);
+            cursor: pointer;
+            transition: all var(--h-transition-fast);
+        }
+
+        .repayment-option.active {
+            border-color: var(--h-primary);
+            background-color: var(--h-primary-light);
+        }
+
+        .result-summary {
+            background: var(--h-primary-light);
+            padding: 1.5rem;
+            border-radius: var(--h-radius-md);
+            margin: 2rem 0;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .summary-item {
+            text-align: center;
+            padding: 1rem;
+            background: white;
+            border-radius: var(--h-radius-md);
+            box-shadow: var(--h-shadow-sm);
+        }
+
+        .summary-label {
+            color: var(--h-text-secondary);
+            font-size: var(--h-text-sm);
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-value {
+            color: var(--h-primary);
+            font-size: var(--h-text-xl);
+            font-weight: var(--h-font-bold);
+        }
+
+        .repayment-schedule {
+            margin-top: 2rem;
+            overflow-x: auto;
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        .schedule-table th,
+        .schedule-table td {
+            padding: 1rem;
+            text-align: right;
+            border-bottom: 1px solid var(--h-border-light);
+        }
+
+        .schedule-table th {
+            background-color: var(--h-primary-light);
+            color: var(--h-text-primary);
+            font-weight: var(--h-font-medium);
+            text-align: center;
+        }
+
+        .schedule-table td:first-child {
+            text-align: center;
+            font-weight: var(--h-font-medium);
+        }
+
+        .schedule-table tr:hover {
+            background-color: var(--h-bg-hover);
+        }
+
+        .chart-container {
+            height: 300px;
+            margin: 2rem 0;
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <main class="main-content">
+        <div class="container">
+            <!-- 타이틀 섹션 -->
+            <div class="h-card text-center mb-8">
+                <h1 class="text-4xl text-primary mb-4 flex items-center justify-center gap-3">
+                    <span data-i18n="calculators.finance.loan.title">대출 이자 계산기</span>
+                    <span>💰</span>
+                </h1>
+                <p class="text-secondary" data-i18n="calculators.finance.loan.description">
+                    대출 상환 계획과 이자를 계산해보세요
+                </p>
+            </div>
+
+            <!-- 계산기 섹션 -->
+            <div class="h-card">
+                <!-- 상환 방식 선택 -->
+                <div class="repayment-type">
+                    <div class="repayment-option active" onclick="switchRepaymentType('equal-payment')" data-type="equal-payment"
+                         data-i18n="calculators.finance.loan.equal_payment">원리금균등상환</div>
+                    <div class="repayment-option" onclick="switchRepaymentType('equal-principal')" data-type="equal-principal"
+                         data-i18n="calculators.finance.loan.equal_principal">원금균등상환</div>
+                    <div class="repayment-option" onclick="switchRepaymentType('bullet')" data-type="bullet"
+                         data-i18n="calculators.finance.loan.bullet">만기일시상환</div>
+                </div>
+
+                <!-- 입력 섹션 -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- 대출금액 -->
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.finance.loan.loan_amount">
+                            대출금액
+                        </label>
+                        <div class="input-with-unit">
+                            <input type="number" id="loanAmount" class="h-input" min="0" step="1000000"
+                                   onchange="calculateLoan()" onkeyup="calculateLoan()">
+                            <span class="input-unit">원</span>
+                        </div>
+                    </div>
+
+                    <!-- 연이율 -->
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.finance.loan.interest_rate">
+                            연이율
+                        </label>
+                        <div class="input-with-unit">
+                            <input type="number" id="interestRate" class="h-input" min="0" max="100" step="0.1"
+                                   onchange="calculateLoan()" onkeyup="calculateLoan()">
+                            <span class="input-unit">%</span>
+                        </div>
+                    </div>
+
+                    <!-- 대출기간 -->
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.finance.loan.loan_term">
+                            대출기간
+                        </label>
+                        <div class="input-with-unit">
+                            <input type="number" id="loanTerm" class="h-input" min="1" max="30"
+                                   onchange="calculateLoan()" onkeyup="calculateLoan()">
+                            <span class="input-unit">년</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 결과 요약 -->
+                <div class="result-summary">
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="summary-label" data-i18n="calculators.finance.loan.monthly_payment">
+                                월 상환금
+                            </div>
+                            <div class="summary-value" id="monthlyPayment">0원</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label" data-i18n="calculators.finance.loan.total_payment">
+                                총 상환금
+                            </div>
+                            <div class="summary-value" id="totalPayment">0원</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label" data-i18n="calculators.finance.loan.total_interest">
+                                총 이자
+                            </div>
+                            <div class="summary-value" id="totalInterest">0원</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 상환 스케줄 -->
+                <div class="repayment-schedule">
+                    <h3 class="text-xl font-semibold mb-4" data-i18n="calculators.finance.loan.repayment_schedule">
+                        상환 스케줄
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="schedule-table">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="calculators.finance.loan.payment_number">회차</th>
+                                    <th data-i18n="calculators.finance.loan.payment_amount">상환금</th>
+                                    <th data-i18n="calculators.finance.loan.principal">원금</th>
+                                    <th data-i18n="calculators.finance.loan.interest">이자</th>
+                                    <th data-i18n="calculators.finance.loan.remaining_principal">잔금</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scheduleBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 설명 섹션 -->
+            <div class="h-card mt-8">
+                <h2 class="text-2xl font-semibold mb-4 text-primary" data-i18n="calculators.finance.loan.about">
+                    대출 상환 방식 안내
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.finance.loan.repayment_types">
+                            상환 방식별 특징
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.finance.loan.repayment_description">
+                            - 원리금균등상환: 매월 동일한 금액 상환<br>
+                            - 원금균등상환: 매월 동일한 원금과 변동되는 이자 상환<br>
+                            - 만기일시상환: 이자만 납부하고 만기에 원금 상환<br>
+                            - 중도상환수수료는 계산에 포함되지 않음
+                        </p>
+                    </div>
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.finance.loan.notes">
+                            참고사항
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.finance.loan.notes_description">
+                            - 계산 결과는 참고용 예시입니다<br>
+                            - 실제 대출 조건은 금융기관마다 다를 수 있음<br>
+                            - 금리 변동에 따라 상환금이 달라질 수 있음<br>
+                            - 정확한 대출 상담은 금융기관과 상담하세요
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let repaymentType = 'equal-payment';
+
+        function switchRepaymentType(type) {
+            repaymentType = type;
+            // 활성화된 옵션 스타일 변경
+            document.querySelectorAll('.repayment-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            document.querySelector(`[data-type="${type}"]`).classList.add('active');
+            
+            // 재계산
+            calculateLoan();
+        }
+
+        function calculateLoan() {
+            const amount = parseFloat(document.getElementById('loanAmount').value) || 0;
+            const rate = parseFloat(document.getElementById('interestRate').value) || 0;
+            const years = parseFloat(document.getElementById('loanTerm').value) || 0;
+
+            if (!amount || !rate || !years) return;
+
+            const monthlyRate = rate / 12 / 100;
+            const totalMonths = years * 12;
+            let monthlyPayment = 0;
+            let totalPayment = 0;
+            let totalInterest = 0;
+            let schedule = [];
+
+            switch(repaymentType) {
+                case 'equal-payment':
+                    // 원리금균등상환
+                    monthlyPayment = amount * monthlyRate * Math.pow(1 + monthlyRate, totalMonths) 
+                        / (Math.pow(1 + monthlyRate, totalMonths) - 1);
+                    
+                    let remainingPrincipal = amount;
+                    for (let i = 1; i <= totalMonths; i++) {
+                        const interest = remainingPrincipal * monthlyRate;
+                        const principal = monthlyPayment - interest;
+                        remainingPrincipal -= principal;
+
+                        schedule.push({
+                            payment: monthlyPayment,
+                            principal: principal,
+                            interest: interest,
+                            balance: Math.max(0, remainingPrincipal)
+                        });
+
+                        totalPayment += monthlyPayment;
+                    }
+                    break;
+
+                case 'equal-principal':
+                    // 원금균등상환
+                    const monthlyPrincipal = amount / totalMonths;
+                    remainingPrincipal = amount;
+
+                    for (let i = 1; i <= totalMonths; i++) {
+                        const interest = remainingPrincipal * monthlyRate;
+                        const payment = monthlyPrincipal + interest;
+                        remainingPrincipal -= monthlyPrincipal;
+
+                        schedule.push({
+                            payment: payment,
+                            principal: monthlyPrincipal,
+                            interest: interest,
+                            balance: Math.max(0, remainingPrincipal)
+                        });
+
+                        totalPayment += payment;
+                    }
+                    monthlyPayment = schedule[0].payment; // 첫 달 상환금
+                    break;
+
+                case 'bullet':
+                    // 만기일시상환
+                    const monthlyInterest = amount * monthlyRate;
+                    for (let i = 1; i <= totalMonths; i++) {
+                        const isLastMonth = i === totalMonths;
+                        const payment = isLastMonth ? monthlyInterest + amount : monthlyInterest;
+                        const principal = isLastMonth ? amount : 0;
+
+                        schedule.push({
+                            payment: payment,
+                            principal: principal,
+                            interest: monthlyInterest,
+                            balance: isLastMonth ? 0 : amount
+                        });
+
+                        totalPayment += payment;
+                    }
+                    monthlyPayment = monthlyInterest; // 월 이자 상환금
+                    break;
+            }
+
+            totalInterest = totalPayment - amount;
+
+            // 결과 표시
+            document.getElementById('monthlyPayment').textContent = 
+                Math.round(monthlyPayment).toLocaleString() + '원';
+            document.getElementById('totalPayment').textContent = 
+                Math.round(totalPayment).toLocaleString() + '원';
+            document.getElementById('totalInterest').textContent = 
+                Math.round(totalInterest).toLocaleString() + '원';
+
+            // 상환 스케줄 표시
+            const scheduleBody = document.getElementById('scheduleBody');
+            scheduleBody.innerHTML = schedule.map((item, index) => `
+                <tr>
+                    <td>${index + 1}회차</td>
+                    <td>${Math.round(item.payment).toLocaleString()}원</td>
+                    <td>${Math.round(item.principal).toLocaleString()}원</td>
+                    <td>${Math.round(item.interest).toLocaleString()}원</td>
+                    <td>${Math.round(item.balance).toLocaleString()}원</td>
+                </tr>
+            `).join('');
+        }
+
+        // 초기 계산
+        document.addEventListener('DOMContentLoaded', () => {
+            // 입력 필드에 기본값 설정
+            document.getElementById('loanAmount').value = '100000000';
+            document.getElementById('interestRate').value = '3.5';
+            document.getElementById('loanTerm').value = '20';
+            // 초기 계산 실행
+            calculateLoan();
+        });
+    </script>
+</body>
+</html>

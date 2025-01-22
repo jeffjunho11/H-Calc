@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-M0BMY9S4Z3"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-M0BMY9S4Z3');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="학점 계산기 - 다양한 학점 체계 변환 및 평점 계산">
+    <title data-i18n="calculators.etc.gpa.title">학점 계산기</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    
+    <!-- Scripts -->
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script type="module">
+        import Sidebar from '/assets/js/components/Sidebar.js';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            new Sidebar();
+    
+            const currentLang = languageDetector.detectLanguage();
+            await initializeI18n(currentLang);
+        });
+    </script>
+
+    <style>
+        @media (min-width: 1024px) {
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+
+        .gpa-modes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--h-space-md);
+            margin: var(--h-space-lg) 0;
+        }
+
+        .gpa-mode {
+            background: var(--h-bg-card);
+            padding: var(--h-space-md);
+            border-radius: var(--h-radius-md);
+            cursor: pointer;
+            transition: all var(--h-transition-fast);
+            border: 2px solid transparent;
+        }
+
+        .gpa-mode:hover {
+            background: var(--h-primary-light);
+        }
+
+        .gpa-mode.active {
+            border-color: var(--h-primary);
+            background: var(--h-primary-light);
+        }
+
+        .gpa-mode-title {
+            font-weight: var(--h-font-medium);
+            color: var(--h-primary);
+            margin-bottom: var(--h-space-xs);
+        }
+
+        .gpa-mode-desc {
+            font-size: var(--h-text-sm);
+            color: var(--h-text-secondary);
+        }
+
+        .course-input-container {
+            background-color: var(--h-bg-card);
+            border-radius: var(--h-radius-lg);
+            padding: var(--h-space-lg);
+        }
+
+        .course-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: var(--h-space-md);
+            margin-bottom: var(--h-space-sm);
+            align-items: center;
+        }
+
+        .course-input {
+            width: 100%;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--h-space-lg);
+            margin-top: var(--h-space-xl);
+        }
+
+        .result-card {
+            background: var(--h-bg-card);
+            border-radius: var(--h-radius-lg);
+            padding: var(--h-space-lg);
+            text-align: center;
+            transition: transform var(--h-transition-normal);
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .result-value {
+            font-size: var(--h-text-4xl);
+            font-weight: var(--h-font-bold);
+            color: var(--h-primary);
+            margin: var(--h-space-md) 0;
+        }
+
+        .result-unit {
+            font-size: var(--h-text-lg);
+            color: var(--h-text-secondary);
+        }
+
+        .add-course-btn {
+            margin-top: var(--h-space-md);
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .course-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <iframe src="common-header.html" style="width:100%; height:auto;"></iframe>
+    <main class="main-content">
+        <div class="container">
+            <!-- 타이틀 섹션 -->
+            <div class="h-card text-center mb-8">
+                <h1 class="text-4xl text-primary mb-4 flex items-center justify-center gap-3">
+                    <span data-i18n="calculators.etc.gpa.title">학점 계산기</span>
+                    <span>🎓</span>
+                </h1>
+                <p class="text-secondary" data-i18n="calculators.etc.gpa.description">
+                    다양한 학점 체계로 평점을 계산하고 변환하세요
+                </p>
+            </div>
+
+            <!-- 학점 체계 선택 -->
+            <div class="gpa-modes">
+                <div class="gpa-mode active" data-mode="4.3" onclick="selectGPAMode('4.3')">
+                    <div class="gpa-mode-title" data-i18n="calculators.etc.gpa.modes.4_3">
+                        4.3 만점
+                    </div>
+                    <div class="gpa-mode-desc" data-i18n="calculators.etc.gpa.modes.4_3_desc">
+                        A+, A, A-, B+ 등 세부 등급
+                    </div>
+                </div>
+
+                <div class="gpa-mode" data-mode="4.0" onclick="selectGPAMode('4.0')">
+                    <div class="gpa-mode-title" data-i18n="calculators.etc.gpa.modes.4_0">
+                        4.0 만점
+                    </div>
+                    <div class="gpa-mode-desc" data-i18n="calculators.etc.gpa.modes.4_0_desc">
+                        A, B, C, D, F 기본 등급
+                    </div>
+                </div>
+
+                <div class="gpa-mode" data-mode="100" onclick="selectGPAMode('100')">
+                    <div class="gpa-mode-title" data-i18n="calculators.etc.gpa.modes.100">
+                        100점 만점
+                    </div>
+                    <div class="gpa-mode-desc" data-i18n="calculators.etc.gpa.modes.100_desc">
+                        점수별 학점 계산
+                    </div>
+                </div>
+            </div>
+
+            <!-- 강좌 입력 섹션 -->
+            <div class="course-input-container">
+                <div id="courseContainer">
+                    <div class="course-row">
+                        <input type="text" class="h-input course-input" placeholder="과목명" />
+                        <select class="h-input course-input grade-input">
+                            <option value="">학점</option>
+                            <!-- 동적으로 옵션 추가 -->
+                        </select>
+                        <input type="number" class="h-input course-input credit-input" 
+                               placeholder="학점" min="0" max="6" step="0.5" />
+                    </div>
+                </div>
+
+                <button class="h-btn h-btn-outline add-course-btn" onclick="addCourseRow()">
+                    + 과목 추가
+                </button>
+            </div>
+
+            <!-- 계산 버튼 -->
+            <div class="mt-4 text-center">
+                <button class="h-btn h-btn-primary w-full" onclick="calculateGPA()">
+                    학점 계산
+                </button>
+            </div>
+
+            <!-- 결과 섹션 -->
+            <div class="results-grid">
+                <div class="result-card">
+                    <h3 class="text-lg font-medium" data-i18n="calculators.etc.gpa.total_credits">
+                        총 이수 학점
+                    </h3>
+                    <div class="result-value">
+                        <span id="totalCredits">0</span>
+                        <span class="result-unit">학점</span>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <h3 class="text-lg font-medium" data-i18n="calculators.etc.gpa.gpa">
+                        평점
+                    </h3>
+                    <div class="result-value">
+                        <span id="gpaValue">0.00</span>
+                        <span class="result-unit">평점</span>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <h3 class="text-lg font-medium" data-i18n="calculators.etc.gpa.grade_point">
+                        총 평점
+                    </div>
+                    <div class="result-value">
+                        <span id="gradePointTotal">0.00</span>
+                        <span class="result-unit">평점</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 설명 섹션 -->
+            <div class="h-card mt-8">
+                <h2 class="text-2xl font-semibold mb-4 text-primary" data-i18n="calculators.etc.gpa.about">
+                    학점 계산이란?
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.etc.gpa.calculation_method">
+                            계산 방법
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.etc.gpa.calculation_description">
+                            학점 평균 계산 원칙:
+                            <br>- 각 과목의 학점과 등급 고려
+                            <br>- 학점별 가중 평균 계산
+                            <br>- 다양한 학점 체계 지원
+                            <br>- 총 이수 학점과 평점 산출
+                        </p>
+                    </div>
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.etc.gpa.notes">
+                            참고사항
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.etc.gpa.notes_description">
+                            - 학교마다 학점 체계 다름
+                            <br>- 정확한 계산을 위해 학교 기준 확인
+                            <br>- 성적 증명서와 대조 필요
+                            <br>- 학점 변환에 주의
+                            <br>- 학업 계획 수립에 활용
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 현재 선택된 학점 체계
+        let currentGPAMode = '4.3';
+
+        // 학점 체계별 등급 맵핑
+        const gradeMappings = {
+            '4.3': {
+                'A+': 4.3, 'A': 4.0, 'A-': 3.7,
+                'B+': 3.3, 'B': 3.0, 'B-': 2.7,
+                'C+': 2.3, 'C': 2.0, 'C-': 1.7,
+                'D+': 1.3, 'D': 1.0, 'D-': 0.7,
+                'F': 0.0
+            },
+            '4.0': {
+                'A': 4.0, 'B': 3.0, 'C': 2.0, 'D': 1.0, 'F': 0.0
+            },
+            '100': {
+                'A+': 97, 'A': 93, 'A-': 90,
+                'B+': 87, 'B': 83, 'B-': 80,
+                'C+': 77, 'C': 73, 'C-': 70,
+                'D+': 67, 'D': 63, 'D-': 60,
+                'F': 0
+            }
+        };
+
+        // 학점 체계 선택
+        function selectGPAMode(mode) {
+            // 모드 버튼 스타일 토글
+            document.querySelectorAll('.gpa-mode').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelector(`.gpa-mode[data-mode="${mode}"]`).classList.add('active');
+            
+            // 현재 모드 업데이트
+            currentGPAMode = mode;
+
+            // 등급 입력란 업데이트
+            updateGradeInputs();
+        }
+
+        // 등급 입력란 업데이트
+        function updateGradeInputs() {
+            const gradeInputs = document.querySelectorAll('.grade-input');
+            gradeInputs.forEach(input => {
+                // 기존 옵션 초기화
+                input.innerHTML = '<option value="">학점</option>';
+                
+                // 현재 학점 체계에 따라 옵션 추가
+                const grades = Object.keys(gradeMappings[currentGPAMode]);
+                grades.forEach(grade => {
+                    const option = document.createElement('option');
+                    option.value = grade;
+                    option.textContent = grade;
+                    input.appendChild(option);
+                });
+            });
+        }
+        // 과목 추가 행 생성
+        function addCourseRow() {
+            const courseContainer = document.getElementById('courseContainer');
+            const newRow = document.createElement('div');
+            newRow.className = 'course-row';
+            
+            newRow.innerHTML = `
+                <input type="text" class="h-input course-input" placeholder="과목명" />
+                <select class="h-input course-input grade-input">
+                    ${Object.keys(gradeMappings[currentGPAMode])
+                        .map(grade => `<option value="${grade}">${grade}</option>`)
+                        .join('')}
+                </select>
+                <input type="number" class="h-input course-input credit-input" 
+                       placeholder="학점" min="0" max="6" step="0.5" />
+                <button class="h-btn h-btn-outline" onclick="this.closest('.course-row').remove()">
+                    ✕
+                </button>
+            `;
+            
+            courseContainer.appendChild(newRow);
+        }
+
+        // 학점 계산 함수
+        function calculateGPA() {
+            const courseRows = document.querySelectorAll('.course-row');
+            let totalCredits = 0;
+            let totalGradePoints = 0;
+
+            courseRows.forEach(row => {
+                const gradeInput = row.querySelector('.grade-input');
+                const creditInput = row.querySelector('.credit-input');
+                
+                const grade = gradeInput.value;
+                const credit = parseFloat(creditInput.value) || 0;
+
+                // 유효성 검사
+                if (!grade || credit === 0) return;
+
+                // 학점 체계별 계산
+                let gradePoint;
+                if (currentGPAMode === '4.3' || currentGPAMode === '4.0') {
+                    gradePoint = gradeMappings[currentGPAMode][grade];
+                } else if (currentGPAMode === '100') {
+                    // 100점 체계는 점수를 4.3 기준으로 변환
+                    const score = gradeMappings[currentGPAMode][grade];
+                    gradePoint = score >= 90 ? 4.3 : 
+                                 score >= 80 ? 3.7 : 
+                                 score >= 70 ? 3.0 : 
+                                 score >= 60 ? 2.0 : 0.0;
+                }
+
+                totalCredits += credit;
+                totalGradePoints += gradePoint * credit;
+            });
+
+            // 평점 계산
+            const gpa = totalCredits > 0 ? totalGradePoints / totalCredits : 0;
+
+            // 결과 표시
+            document.getElementById('totalCredits').textContent = totalCredits.toFixed(1);
+            document.getElementById('gpaValue').textContent = gpa.toFixed(2);
+            document.getElementById('gradePointTotal').textContent = totalGradePoints.toFixed(2);
+        }
+
+        // 페이지 로드 시 초기 설정
+        document.addEventListener('DOMContentLoaded', () => {
+            // 초기 등급 입력란 설정
+            updateGradeInputs();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="프리랜서 세금 계산기 - 소득세 및 원천징수액 계산">
+    <title data-i18n="calculators.finance.freelancer_tax.title">프리랜서 세금 계산기</title>
+    
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-M0BMY9S4Z3"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+    
+        gtag('config', 'G-M0BMY9S4Z3');
+        </script>
+        
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    
+    <!-- Scripts -->
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script type="module">
+        import Sidebar from '/assets/js/components/Sidebar.js';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            new Sidebar();
+            const currentLang = languageDetector.detectLanguage();
+            await initializeI18n(currentLang);
+        });
+    </script>
+
+    <style>
+        @media (min-width: 1024px) {
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+
+        .input-with-unit {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-with-unit input {
+            padding-right: 4rem;
+        }
+
+        .input-unit {
+            position: absolute;
+            right: 1rem;
+            color: var(--h-text-secondary);
+        }
+
+        .tax-calculator {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .tax-type-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .tax-type-option {
+            flex: 1;
+            text-align: center;
+            padding: 1rem;
+            border: 2px solid var(--h-border-light);
+            border-radius: var(--h-radius-md);
+            cursor: pointer;
+            transition: all var(--h-transition-fast);
+        }
+
+        .tax-type-option.active {
+            border-color: var(--h-primary);
+            background-color: var(--h-primary-light);
+        }
+
+        .result-section {
+            background: var(--h-bg-card);
+            border-radius: var(--h-radius-lg);
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .result-item {
+            background: var(--h-primary-light);
+            padding: 1.5rem;
+            border-radius: var(--h-radius-md);
+            text-align: center;
+        }
+
+        .result-label {
+            color: var(--h-text-secondary);
+            font-size: var(--h-text-sm);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-value {
+            color: var(--h-primary);
+            font-size: var(--h-text-2xl);
+            font-weight: var(--h-font-bold);
+        }
+
+        .tax-breakdown {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--h-border-light);
+        }
+
+        .breakdown-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+
+        .breakdown-item {
+            padding: 1rem;
+            background: var(--h-bg-card);
+            border-radius: var(--h-radius-md);
+            box-shadow: var(--h-shadow-sm);
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <main class="main-content">
+        <div class="container">
+            <!-- 타이틀 섹션 -->
+            <div class="h-card text-center mb-8">
+                <h1 class="text-4xl text-primary mb-4 flex items-center justify-center gap-3">
+                    <span data-i18n="calculators.finance.freelancer_tax.title">프리랜서 세금 계산기</span>
+                    <span>📊</span>
+                </h1>
+                <p class="text-secondary" data-i18n="calculators.finance.freelancer_tax.description">
+                    프리랜서 수입에 대한 세금과 원천징수액을 계산해보세요
+                </p>
+            </div>
+
+            <!-- 계산기 섹션 -->
+            <div class="h-card">
+                <!-- 소득 유형 선택 -->
+                <div class="tax-type-selector">
+                    <div class="tax-type-option active" onclick="switchTaxType('business')" data-type="business"
+                         data-i18n="calculators.finance.freelancer_tax.business_income">사업소득</div>
+                    <div class="tax-type-option" onclick="switchTaxType('lecture')" data-type="lecture"
+                         data-i18n="calculators.finance.freelancer_tax.lecture_income">강연/원고소득</div>
+                </div>
+
+                <!-- 입력 섹션 -->
+                <div class="grid grid-cols-1 gap-6">
+                    <!-- 수입금액 입력 -->
+                    <div class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.finance.freelancer_tax.income_amount">
+                            수입금액
+                        </label>
+                        <div class="input-with-unit">
+                            <input type="number" id="incomeAmount" class="h-input" min="0" step="10000"
+                                   onchange="calculateTax()" onkeyup="calculateTax()">
+                            <span class="input-unit">원</span>
+                        </div>
+                    </div>
+
+                    <!-- 필요경비율 선택 (사업소득일 때만 표시) -->
+                    <div id="expenseRateSection" class="h-input-group">
+                        <label class="h-input-label" data-i18n="calculators.finance.freelancer_tax.expense_rate">
+                            필요경비율
+                        </label>
+                        <select id="expenseRate" class="h-input" onchange="calculateTax()">
+                            <option value="0.6" data-i18n="calculators.finance.freelancer_tax.expense_rate_60">60% (일반)</option>
+                            <option value="0.5" data-i18n="calculators.finance.freelancer_tax.expense_rate_50">50% (전문직)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 결과 섹션 -->
+                <div id="resultSection" class="result-section" style="display: none;">
+                    <h3 class="text-xl font-semibold mb-4" data-i18n="calculators.finance.freelancer_tax.calculation_result">
+                        계산 결과
+                    </h3>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <div class="result-label" data-i18n="calculators.finance.freelancer_tax.income">수입금액</div>
+                            <div class="result-value" id="totalIncome">0원</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label" data-i18n="calculators.finance.freelancer_tax.expenses">필요경비</div>
+                            <div class="result-value" id="expenses">0원</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label" data-i18n="calculators.finance.freelancer_tax.taxable_income">과세금액</div>
+                            <div class="result-value" id="taxableIncome">0원</div>
+                        </div>
+                    </div>
+
+                    <!-- 세금 내역 -->
+                    <div class="tax-breakdown">
+                        <h4 class="text-lg font-semibold mb-4" data-i18n="calculators.finance.freelancer_tax.tax_details">
+                            세금 내역
+                        </h4>
+                        <div class="breakdown-grid">
+                            <div class="breakdown-item">
+                                <div class="result-label" data-i18n="calculators.finance.freelancer_tax.income_tax">소득세</div>
+                                <div class="result-value" id="incomeTax">0원</div>
+                            </div>
+                            <div class="breakdown-item">
+                                <div class="result-label" data-i18n="calculators.finance.freelancer_tax.local_tax">지방소득세</div>
+                                <div class="result-value" id="localTax">0원</div>
+                            </div>
+                            <div class="breakdown-item">
+                                <div class="result-label" data-i18n="calculators.finance.freelancer_tax.total_tax">총 세금</div>
+                                <div class="result-value" id="totalTax">0원</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 설명 섹션 -->
+            <div class="h-card mt-8">
+                <h2 class="text-2xl font-semibold mb-4 text-primary" data-i18n="calculators.finance.freelancer_tax.about">
+                    세금 계산 안내
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.finance.freelancer_tax.calculation_method">
+                            계산 방법
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.finance.freelancer_tax.calculation_description">
+                            - 과세금액 = 수입금액 - 필요경비<br>
+                            - 소득세 = 과세금액 × 세율(3~45%)<br>
+                            - 지방소득세 = 소득세 × 10%<br>
+                            - 사업소득: 필요경비율 적용<br>
+                            - 강연/원고소득: 고정 필요경비율 60%
+                        </p>
+                    </div>
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.finance.freelancer_tax.notes">
+                            참고사항
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.finance.freelancer_tax.notes_description">
+                            - 계산 결과는 예상치이며 실제와 다를 수 있음<br>
+                            - 종합소득세 신고 시 추가 납부/환급 가능<br>
+                            - 전문직 필요경비율은 50% 적용<br>
+                            - 정확한 세금 관련 문의는 세무사와 상담하세요
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let taxType = 'business';
+
+        function switchTaxType(type) {
+            taxType = type;
+            // 활성화된 옵션 스타일 변경
+            document.querySelectorAll('.tax-type-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            document.querySelector(`[data-type="${type}"]`).classList.add('active');
+            
+            // 필요경비율 선택 섹션 표시/숨김
+            const expenseRateSection = document.getElementById('expenseRateSection');
+            expenseRateSection.style.display = type === 'business' ? 'block' : 'none';
+            
+            // 재계산
+            calculateTax();
+        }
+
+        function calculateTax() {
+            const income = parseFloat(document.getElementById('incomeAmount').value) || 0;
+            let expenseRate = taxType === 'business' ? 
+                parseFloat(document.getElementById('expenseRate').value) : 0.6;
+
+            // 필요경비 계산
+            const expenses = income * expenseRate;
+            
+            // 과세금액 계산
+            const taxableIncome = income - expenses;
+
+            // 소득세율 계산 (누진세율 적용)
+            let incomeTaxRate = 0;
+            if (taxableIncome <= 12000000) {
+                incomeTaxRate = 0.06;
+            } else if (taxableIncome <= 46000000) {
+                incomeTaxRate = 0.15;
+            } else if (taxableIncome <= 88000000) {
+                incomeTaxRate = 0.24;
+            } else if (taxableIncome <= 150000000) {
+                incomeTaxRate = 0.35;
+            } else if (taxableIncome <= 300000000) {
+                incomeTaxRate = 0.38;
+            } else if (taxableIncome <= 500000000) {
+                incomeTaxRate = 0.40;
+            } else {
+                incomeTaxRate = 0.45;
+            }
+
+            // 세금 계산
+            const incomeTax = taxableIncome * incomeTaxRate;
+            const localTax = incomeTax * 0.1; // 지방소득세 10%
+            const totalTax = incomeTax + localTax;
+
+            // 결과 표시
+            document.getElementById('resultSection').style.display = 'block';
+            
+            // 수입/경비/과세금액
+            document.getElementById('totalIncome').textContent = 
+                Math.round(income).toLocaleString() + '원';
+            document.getElementById('expenses').textContent = 
+                Math.round(expenses).toLocaleString() + '원';
+            document.getElementById('taxableIncome').textContent = 
+                Math.round(taxableIncome).toLocaleString() + '원';
+            
+            // 세금 내역
+            document.getElementById('incomeTax').textContent = 
+                Math.round(incomeTax).toLocaleString() + '원';
+            document.getElementById('localTax').textContent = 
+                Math.round(localTax).toLocaleString() + '원';
+            document.getElementById('totalTax').textContent = 
+                Math.round(totalTax).toLocaleString() + '원';
+        }
+
+        // 초기 계산
+        document.addEventListener('DOMContentLoaded', () => {
+            // 입력 필드에 기본값 설정
+            document.getElementById('incomeAmount').value = '10000000';
+            // 초기 계산 실행
+            calculateTax();
+        });
+    </script>
+</body>
+</html>

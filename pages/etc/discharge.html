@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-M0BMY9S4Z3"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+    
+        gtag('config', 'G-M0BMY9S4Z3');
+        </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="전역일 계산기 - 전역일과 남은 복무일수 계산">
+    <title data-i18n="calculators.etc.discharge.title">전역일 계산기</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    
+    <!-- Scripts -->
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script type="module">
+        import Sidebar from '/assets/js/components/Sidebar.js';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            new Sidebar();
+            const currentLang = languageDetector.detectLanguage();
+            await initializeI18n(currentLang);
+        });
+    </script>
+
+    <style>
+        @media (min-width: 1024px) {
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+
+        .military-type {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .type-option {
+            flex: 1;
+            text-align: center;
+            padding: 1rem;
+            border: 2px solid var(--h-border-light);
+            border-radius: var(--h-radius-md);
+            cursor: pointer;
+            transition: all var(--h-transition-fast);
+        }
+
+        .type-option.active {
+            border-color: var(--h-primary);
+            background-color: var(--h-primary-light);
+            color: var(--h-primary);
+        }
+
+        .d-day {
+            font-size: 4rem;
+            font-weight: var(--h-font-bold);
+            color: var(--h-primary);
+            text-align: center;
+            margin: 2rem 0;
+            font-family: monospace;
+        }
+
+        .date-card {
+            background: var(--h-primary-light);
+            padding: 2rem;
+            border-radius: var(--h-radius-lg);
+            margin: 2rem 0;
+        }
+
+        .date-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .date-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--h-radius-md);
+            text-align: center;
+        }
+
+        .date-label {
+            color: var(--h-text-secondary);
+            font-size: var(--h-text-sm);
+            margin-bottom: 0.5rem;
+        }
+
+        .date-value {
+            color: var(--h-text-primary);
+            font-size: var(--h-text-xl);
+            font-weight: var(--h-font-bold);
+        }
+
+        .progress-bar {
+            height: 2rem;
+            background: var(--h-bg-card);
+            border-radius: var(--h-radius-full);
+            overflow: hidden;
+            margin: 2rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--h-primary);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: var(--h-font-medium);
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <main class="main-content">
+        <div class="container">
+            <!-- 타이틀 섹션 -->
+            <div class="h-card text-center mb-8">
+                <h1 class="text-4xl text-primary mb-4 flex items-center justify-center gap-3">
+                    <span data-i18n="calculators.etc.discharge.title">전역일 계산기</span>
+                    <span>🪖</span>
+                </h1>
+                <p class="text-secondary" data-i18n="calculators.etc.discharge.description">
+                    입대일을 입력하면 전역일과 남은 복무 기간을 계산해드립니다
+                </p>
+            </div>
+
+            <!-- 계산기 섹션 -->
+            <div class="h-card">
+                <!-- 군종 선택 -->
+                <div class="military-type">
+                    <div class="type-option active" onclick="switchType('army')" data-type="army"
+                         data-i18n="calculators.etc.discharge.army">육군</div>
+                    <div class="type-option" onclick="switchType('navy')" data-type="navy"
+                         data-i18n="calculators.etc.discharge.navy">해군</div>
+                    <div class="type-option" onclick="switchType('airforce')" data-type="airforce"
+                         data-i18n="calculators.etc.discharge.airforce">공군</div>
+                    <div class="type-option" onclick="switchType('marine')" data-type="marine"
+                         data-i18n="calculators.etc.discharge.marine">해병대</div>
+                </div>
+
+                <!-- 입대일 입력 -->
+                <div class="h-input-group">
+                    <label class="h-input-label" data-i18n="calculators.etc.discharge.enlist_date">
+                        입대일
+                    </label>
+                    <input type="date" id="enlistDate" class="h-input" onchange="calculateDischarge()">
+                </div>
+
+                <!-- D-day 표시 -->
+                <div id="dDay" class="d-day"></div>
+
+                <!-- 진행률 바 -->
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill">0%</div>
+                </div>
+
+                <!-- 날짜 정보 -->
+                <div class="date-card">
+                    <div class="date-grid">
+                        <div class="date-item">
+                            <div class="date-label" data-i18n="calculators.etc.discharge.enlist_date">입대일</div>
+                            <div class="date-value" id="enlistDateDisplay">-</div>
+                        </div>
+                        <div class="date-item">
+                            <div class="date-label" data-i18n="calculators.etc.discharge.training_end">훈련소 수료일</div>
+                            <div class="date-value" id="trainingEndDate">-</div>
+                        </div>
+                        <div class="date-item">
+                            <div class="date-label" data-i18n="calculators.etc.discharge.half_point">복무 중간일</div>
+                            <div class="date-value" id="halfPointDate">-</div>
+                        </div>
+                        <div class="date-item">
+                            <div class="date-label" data-i18n="calculators.etc.discharge.discharge_date">전역일</div>
+                            <div class="date-value" id="dischargeDate">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 설명 섹션 -->
+            <div class="h-card mt-8">
+                <h2 class="text-2xl font-semibold mb-4 text-primary" data-i18n="calculators.etc.discharge.about">
+                    복무기간 안내
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.etc.discharge.service_period">
+                            군별 복무기간
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.etc.discharge.service_period_description">
+                            - 육군/해병대: 18개월<br>
+                            - 해군: 20개월<br>
+                            - 공군: 21개월<br>
+                            - 기산일: 입대일 다음날부터<br>
+                            - 전역일: 복무기간 마지막 날
+                        </p>
+                    </div>
+                    <div class="h-card bg-neutral-50">
+                        <h3 class="text-lg font-medium mb-3" data-i18n="calculators.etc.discharge.notes">
+                            참고사항
+                        </h3>
+                        <p class="text-secondary" data-i18n="[html]calculators.etc.discharge.notes_description">
+                            - 훈련소 기간 포함<br>
+                            - 공휴일 포함<br>
+                            - 실제 전역일은 부대 사정에 따라 다를 수 있음<br>
+                            - 연장/단축 복무는 계산에서 제외
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const servicePeriods = {
+            'army': 18,    // 육군
+            'navy': 20,    // 해군
+            'airforce': 21, // 공군
+            'marine': 18    // 해병대
+        };
+        const trainingPeriods = {
+            'army': 5,    // 육군 5주
+            'navy': 6,    // 해군 6주
+            'airforce': 6, // 공군 6주
+            'marine': 7    // 해병대 7주
+        };
+        
+        let currentType = 'army';
+
+        function switchType(type) {
+            currentType = type;
+            document.querySelectorAll('.type-option').forEach(option => {
+                option.classList.toggle('active', option.dataset.type === type);
+            });
+            calculateDischarge();
+        }
+
+        function formatDate(date) {
+            return date.toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long'
+            });
+        }
+
+        function calculateDischarge() {
+            const enlistDate = new Date(document.getElementById('enlistDate').value);
+            if (isNaN(enlistDate.getTime())) return;
+
+            // 복무기간 (월)
+            const months = servicePeriods[currentType];
+            
+            // 전역일 계산
+            const dischargeDate = new Date(enlistDate);
+            dischargeDate.setMonth(dischargeDate.getMonth() + months);
+            dischargeDate.setDate(dischargeDate.getDate() - 1);
+
+            // 훈련소 수료일 계산
+            const trainingEndDate = new Date(enlistDate);
+            trainingEndDate.setDate(trainingEndDate.getDate() + (trainingPeriods[currentType] * 7));
+
+            // 복무 중간일 계산
+            const halfPointDate = new Date(enlistDate);
+            halfPointDate.setMonth(halfPointDate.getMonth() + Math.floor(months / 2));
+
+            // 남은 일수 계산
+            const today = new Date();
+            const remainingDays = Math.ceil((dischargeDate - today) / (1000 * 60 * 60 * 24));
+            const totalDays = Math.ceil((dischargeDate - enlistDate) / (1000 * 60 * 60 * 24));
+            const completedDays = totalDays - remainingDays;
+            const progress = Math.min(100, Math.max(0, (completedDays / totalDays) * 100));
+
+            // 결과 표시
+            document.getElementById('dDay').textContent = 
+                remainingDays > 0 ? `D-${remainingDays}` : 'D+0';
+            document.getElementById('enlistDateDisplay').textContent = formatDate(enlistDate);
+            document.getElementById('trainingEndDate').textContent = formatDate(trainingEndDate);
+            document.getElementById('halfPointDate').textContent = formatDate(halfPointDate);
+            document.getElementById('dischargeDate').textContent = formatDate(dischargeDate);
+            
+            // 진행률 바 업데이트
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = `${progress}%`;
+            progressFill.textContent = `${Math.round(progress)}%`;
+        }
+
+        // 오늘 날짜를 기본값으로 설정
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date();
+            const dateInput = document.getElementById('enlistDate');
+            dateInput.valueAsDate = today;
+            calculateDischarge();
+        });
+    </script>
+</body>
+</html>

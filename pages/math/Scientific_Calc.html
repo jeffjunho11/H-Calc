@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="공학용 계산기 - 고급 수학 계산">
+    <title data-i18n="calculators.math.scientific.title">공학용 계산기</title>
+    
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-M0BMY9S4Z3"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+    
+        gtag('config', 'G-M0BMY9S4Z3');
+        </script>
+        
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    
+    <!-- Scripts -->
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script type="module">
+        import Sidebar from '/assets/js/components/Sidebar.js';
+        import * as math from 'mathjs';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            new Sidebar();
+            const currentLang = languageDetector.detectLanguage();
+            await initializeI18n(currentLang);
+            window.math = math;
+        });
+    </script>
+
+    <style>
+        @media (min-width: 1024px) {
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+
+        .calculator {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: var(--h-bg-card);
+            border-radius: var(--h-radius-lg);
+            box-shadow: var(--h-shadow-lg);
+        }
+
+        .display {
+            background: var(--h-bg-main);
+            padding: 1.5rem;
+            border-radius: var(--h-radius-md);
+            margin-bottom: 1.5rem;
+        }
+
+        .expression {
+            font-size: var(--h-text-lg);
+            color: var(--h-text-secondary);
+            min-height: 1.5rem;
+            margin-bottom: 0.5rem;
+            text-align: right;
+            font-family: monospace;
+        }
+
+        .result {
+            font-size: var(--h-text-4xl);
+            color: var(--h-text-primary);
+            font-weight: var(--h-font-bold);
+            text-align: right;
+            font-family: monospace;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.5rem;
+        }
+
+        .scientific-keypad {
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--h-border-light);
+            padding-bottom: 1rem;
+        }
+
+        .key {
+            padding: 1rem;
+            border: none;
+            background: var(--h-bg-main);
+            color: var(--h-text-primary);
+            border-radius: var(--h-radius-md);
+            font-size: var(--h-text-lg);
+            cursor: pointer;
+            transition: all var(--h-transition-fast);
+            user-select: none;
+        }
+
+        .key:hover {
+            background: var(--h-primary-light);
+            color: var(--h-primary);
+        }
+
+        .key.operator {
+            background: var(--h-primary-light);
+            color: var(--h-primary);
+        }
+
+        .key.function {
+            background: var(--h-secondary-light);
+            color: var(--h-secondary);
+            font-size: var(--h-text-sm);
+        }
+
+        .key.equals {
+            background: var(--h-primary);
+            color: white;
+        }
+
+        .key.clear {
+            background: var(--h-error);
+            color: white;
+        }
+
+        .memory-section {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .memory-key {
+            flex: 1;
+            padding: 0.5rem;
+            font-size: var(--h-text-sm);
+            background: var(--h-bg-main);
+            color: var(--h-text-secondary);
+            border-radius: var(--h-radius-md);
+            cursor: pointer;
+            text-align: center;
+            transition: all var(--h-transition-fast);
+        }
+
+        .memory-key:hover {
+            background: var(--h-primary-light);
+            color: var(--h-primary);
+        }
+
+        .angle-mode {
+            margin-bottom: 1rem;
+        }
+
+        .angle-toggle {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .angle-option {
+            flex: 1;
+            padding: 0.5rem;
+            text-align: center;
+            border: 2px solid var(--h-border-light);
+            border-radius: var(--h-radius-md);
+            cursor: pointer;
+            transition: all var(--h-transition-fast);
+        }
+
+        .angle-option.active {
+            border-color: var(--h-primary);
+            background: var(--h-primary-light);
+            color: var(--h-primary);
+        }
+
+        .history-panel {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--h-border-light);
+        }
+
+        .history-item {
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--h-border-light);
+            cursor: pointer;
+            transition: background-color var(--h-transition-fast);
+        }
+
+        .history-item:hover {
+            background-color: var(--h-bg-hover);
+        }
+
+        .history-expression {
+            color: var(--h-text-secondary);
+            font-size: var(--h-text-sm);
+        }
+
+        .history-result {
+            color: var(--h-text-primary);
+            font-weight: var(--h-font-medium);
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <main class="main-content">
+        <div class="container">
+            <!-- 타이틀 섹션 -->
+            <div class="h-card text-center mb-8">
+                <h1 class="text-4xl text-primary mb-4 flex items-center justify-center gap-3">
+                    <span data-i18n="calculators.math.scientific.title">공학용 계산기</span>
+                    <span>🧮</span>
+                </h1>
+                <p class="text-secondary" data-i18n="calculators.math.scientific.description">
+                    삼각함수, 로그, 지수 등 고급 수학 계산이 가능한 계산기
+                </p>
+            </div>
+
+            <!-- 계산기 섹션 -->
+            <div class="calculator">
+                <!-- 각도 모드 선택 -->
+                <div class="angle-mode">
+                    <div class="angle-toggle">
+                        <div class="angle-option active" onclick="setAngleMode('deg')" data-mode="deg"
+                             data-i18n="calculators.math.scientific.degree">도(°)</div>
+                        <div class="angle-option" onclick="setAngleMode('rad')" data-mode="rad"
+                             data-i18n="calculators.math.scientific.radian">라디안(rad)</div>
+                    </div>
+                </div>
+
+                <!-- 메모리 섹션 -->
+                <div class="memory-section">
+                    <div class="memory-key" onclick="memoryOperation('MC')"
+                         data-i18n="calculators.math.scientific.memory_clear">MC</div>
+                    <div class="memory-key" onclick="memoryOperation('MR')"
+                         data-i18n="calculators.math.scientific.memory_recall">MR</div>
+                    <div class="memory-key" onclick="memoryOperation('M+')"
+                         data-i18n="calculators.math.scientific.memory_plus">M+</div>
+                    <div class="memory-key" onclick="memoryOperation('M-')"
+                         data-i18n="calculators.math.scientific.memory_minus">M-</div>
+                    <div class="memory-key" onclick="memoryOperation('MS')"
+                         data-i18n="calculators.math.scientific.memory_store">MS</div>
+                </div>
+
+                <!-- 디스플레이 -->
+                <div class="display">
+                    <div class="expression" id="expression"></div>
+                    <div class="result" id="result">0</div>
+                </div>
+
+                <!-- 공학용 키패드 -->
+                <div class="keypad scientific-keypad">
+                    <button class="key function" onclick="insertFunction('sqrt(')" data-i18n="calculators.math.scientific.sqrt">√</button>
+                    <button class="key function" onclick="insertFunction('sin(')" data-i18n="calculators.math.scientific.sin">sin</button>
+                    <button class="key function" onclick="insertFunction('cos(')" data-i18n="calculators.math.scientific.cos">cos</button>
+                    <button class="key function" onclick="insertFunction('tan(')" data-i18n="calculators.math.scientific.tan">tan</button>
+                    <button class="key function" onclick="insertFunction('log(')" data-i18n="calculators.math.scientific.log">log</button>
+
+                    <button class="key function" onclick="insertFunction('pow(')" data-i18n="calculators.math.scientific.power">xⁿ</button>
+                    <button class="key function" onclick="insertFunction('asin(')" data-i18n="calculators.math.scientific.arcsin">arcsin</button>
+                    <button class="key function" onclick="insertFunction('acos(')" data-i18n="calculators.math.scientific.arccos">arccos</button>
+                    <button class="key function" onclick="insertFunction('atan(')" data-i18n="calculators.math.scientific.arctan">arctan</button>
+                    <button class="key function" onclick="insertFunction('ln(')" data-i18n="calculators.math.scientific.ln">ln</button>
+
+                    <button class="key function" onclick="insertMathConstant('pi')" data-i18n="calculators.math.scientific.pi">π</button>
+                    <button class="key function" onclick="insertMathConstant('e')" data-i18n="calculators.math.scientific.e">e</button>
+                    <button class="key function" onclick="insertOperator('!')" data-i18n="calculators.math.scientific.factorial">!</button>
+                    <button class="key" onclick="insertOperator('^')">^</button>
+                    <button class="key" onclick="insertOperator('(')">(</button>
+                </div>
+
+                <!-- 기본 키패드 -->
+                <div class="keypad">
+                    <button class="key" onclick="insertNumber('7')">7</button>
+                    <button class="key" onclick="insertNumber('8')">8</button>
+                    <button class="key" onclick="insertNumber('9')">9</button>
+                    <button class="key" onclick="insertOperator(')')">)</button>
+                    <button class="key clear" onclick="clearCalculator()">C</button>
+
+                    <button class="key" onclick="insertNumber('4')">4</button>
+                    <button class="key" onclick="insertNumber('5')">5</button>
+                    <button class="key" onclick="insertNumber('6')">6</button>
+                    <button class="key operator" onclick="insertOperator('*')">×</button>
+                    <button class="key operator" onclick="insertOperator('/')">÷</button>
+
+                    <button class="key" onclick="insertNumber('1')">1</button>
+                    <button class="key" onclick="insertNumber('2')">2</button>
+                    <button class="key" onclick="insertNumber('3')">3</button>
+                    <button class="key operator" onclick="insertOperator('+')">+</button>
+                    <button class="key operator" onclick="insertOperator('-')">-</button>
+
+                    <button class="key" onclick="insertNumber('0')">0</button>
+                    <button class="key" onclick="insertNumber('.')">.</button>
+                    <button class="key" onclick="deleteLastChar()">⌫</button>
+                    <button class="key equals" onclick="calculate()" style="grid-column: span 2;">=</button>
+                </div>
+
+                <!-- 계산 기록 -->
+                <div class="history-panel">
+                    <h3 class="text-lg font-medium mb-2" data-i18n="calculators.math.scientific.history">
+                        계산 기록
+                    </h3>
+                    <div id="historyList"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let expression = '';
+        let angleMode = 'deg';
+        let memory = 0;
+        let history = [];
+
+        function setAngleMode(mode) {
+            angleMode = mode;
+            document.querySelectorAll('.angle-option').forEach(option => {
+                option.classList.toggle('active', option.dataset.mode === mode);
+            });
+        }
+
+        function insertNumber(num) {
+            expression += num;
+            updateDisplay();
+        }
+
+        function insertOperator(op) {
+            expression += op;
+            updateDisplay();
+        }
+
+        function insertFunction(func) {
+            expression += func;
+            updateDisplay();
+        }
+
+        function insertMathConstant(constant) {
+            expression += `${constant}`;
+            updateDisplay();
+        }
+
+        function clearCalculator() {
+            expression = '';
+            updateDisplay();
+        }
+
+        function deleteLastChar() {
+            expression = expression.slice(0, -1);
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            document.getElementById('expression').textContent = expression || '0';
+            try {
+                if (expression) {
+                    let result = calculateExpression(expression);
+                    document.getElementById('result').textContent = '0';
+                }
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error';
+            }
+        }
+
+        function calculateExpression(expr) {
+            let processedExpr = expr;
+            
+            // 삼각함수 계산 시 각도/라디안 변환
+            if (angleMode === 'deg') {
+                ['sin', 'cos', 'tan'].forEach(func => {
+                    processedExpr = processedExpr.replace(
+                        new RegExp(`${func}\\((.*?)\\)`, 'g'),
+                        (match, angle) => `${func}((${angle}) * pi / 180)`
+                    );
+                });
+                ['asin', 'acos', 'atan'].forEach(func => {
+                    processedExpr = processedExpr.replace(
+                        new RegExp(`${func}\\((.*?)\\)`, 'g'),
+                        (match, value) => `(${func}(${value}) * 180 / pi)`
+                    );
+                });
+            }
+
+            // 팩토리얼 처리
+            processedExpr = processedExpr.replace(
+                /(\d+)!/g,
+                (match, num) => math.factorial(parseInt(num))
+            );
+
+            try {
+                const result = math.evaluate(processedExpr);
+                return typeof result === 'number' ? 
+                    math.format(result, { precision: 10 }).replace(/\.?0+$/, '') : 
+                    result.toString();
+            } catch (error) {
+                throw new Error('Invalid expression');
+            }
+        }
+
+        function calculate() {
+            try {
+                if (expression) {
+                    const result = calculateExpression(expression);
+                    // 계산 기록 저장
+                    history.unshift({
+                        expression: expression,
+                        result: result
+                    });
+                    updateHistory();
+                    
+                    // 결과를 새로운 expression으로 설정
+                    expression = result;
+                    updateDisplay();
+                }
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error';
+            }
+        }
+
+        function updateHistory() {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = history.slice(0, 10).map(item => `
+                <div class="history-item" onclick="loadHistory('${item.expression}')">
+                    <div class="history-expression">${item.expression}</div>
+                    <div class="history-result">= ${item.result}</div>
+                </div>
+            `).join('');
+        }
+
+        function loadHistory(expr) {
+            expression = expr;
+            updateDisplay();
+        }
+
+        function memoryOperation(op) {
+            const currentValue = parseFloat(document.getElementById('result').textContent);
+            
+            switch (op) {
+                case 'MC':
+                    memory = 0;
+                    break;
+                case 'MR':
+                    expression = memory.toString();
+                    updateDisplay();
+                    break;
+                case 'M+':
+                    memory += currentValue;
+                    break;
+                case 'M-':
+                    memory -= currentValue;
+                    break;
+                case 'MS':
+                    memory = currentValue;
+                    break;
+            }
+        }
+
+        // 키보드 입력 처리
+        document.addEventListener('keydown', (event) => {
+            if (event.key >= '0' && event.key <= '9' || event.key === '.') {
+                insertNumber(event.key);
+            } else if (['+', '-', '*', '/', '(', ')', '^'].includes(event.key)) {
+                insertOperator(event.key);
+            } else if (event.key === 'Enter') {
+                calculate();
+            } else if (event.key === 'Backspace') {
+                deleteLastChar();
+            } else if (event.key === 'Escape') {
+                clearCalculator();
+            }
+        });
+
+        // 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDisplay();
+        });
+    </script>
+</body>
+</html>

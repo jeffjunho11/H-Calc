@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="통계 계산기 - 기본 통계량 계산 및 데이터 시각화">
+    <title data-i18n="calculators.math.statistics.title">통계 계산기</title>
+    
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-M0BMY9S4Z3"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+    
+        gtag('config', 'G-M0BMY9S4Z3');
+        </script>
+        
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="../../assets/css/base.css">
+    <link rel="stylesheet" href="../../assets/css/components.css">
+    
+    <!-- Scripts -->
+    <script src="../../assets/js/i18n/i18n.js"></script>
+    <script type="module">
+        import Sidebar from '/assets/js/components/Sidebar.js';
+        import * as math from 'mathjs';
+        import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            new Sidebar();
+            const currentLang = languageDetector.detectLanguage();
+            await initializeI18n(currentLang);
+            window.math = math;
+            window.recharts = {
+                BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+                LineChart, Line
+            };
+        });
+    </script>
+
+    <style>
+        @media (min-width: 1024px) {
+            .main-content {
+                margin-left: 280px;
+            }
+        }
+
+        .statistics-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .data-input {
+            margin-bottom: 2rem;
+        }
+
+        .data-input textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 1rem;
+            border: 2px solid var(--h-border-light);
+            border-radius: var(--h-radius-md);
+            font-family: monospace;
+            resize: vertical;
+        }
+
+        .data-input textarea:focus {
+            border-color: var(--h-primary);
+            outline: none;
+            box-shadow: 0 0 0 3px var(--h-primary-light);
+        }
+
+        .input-help {
+            font-size: var(--h-text-sm);
+            color: var(--h-text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        .data-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .control-button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: var(--h-radius-md);
+            background: var(--h-primary);
+            color: white;
+            cursor: pointer;
+            transition: all var(--h-transition-fast);
+        }
+
+        .control-button:hover {
+            background: var(--h-primary-dark);
+        }
+
+        .control-button.secondary {
+            background: var(--h-secondary);
+        }
+
+        .control-button.secondary:hover {
+            background: var(--h-secondary-dark);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-card {
+            background: var(--h-bg-card);
+            padding: 1.5rem;
+            border-radius: var(--h-radius-md);
+            text-align: center;
+            box-shadow: var(--h-shadow-sm);
+        }
+
+        .result-label {
+            color: var(--h-text-secondary);
+            font-size: var(--h-text-sm);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-value {
+            color: var(--h-text-primary);
+            font-size: var(--h-text-xl);
+            font-weight: var(--h-font-bold);
+        }
+
+        .chart-section {
+            background: var(--h-bg-card);
+            padding: 1.5rem;
+            border-radius: var(--h-radius-lg);
+            margin-bottom: 2rem;
+        }
+
+        .chart-title {
+            font-size: var(--h-text-xl);
+            font-weight: var(--h-font-semibold);
+            margin-bottom: 1rem;
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-bottom: 1rem;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--h-border-light);
+            text-align: left;
+        }
+
+        .data-table th {
+            background: var(--h-primary-light);
+            color: var(--h-text-primary);
+            font-weight: var(--h-font-medium);
+        }
+
+        .data-table tbody tr:hover {
+            background: var(--h-bg-hover);
+        }
+
+        .export-section {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--h-border-light);
+        }
+
+        .export-options {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .error-message {
+            color: var(--h-error);
+            font-size: var(--h-text-sm);
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <main class="main-content">
+        <div class="container">
+            <!-- 타이틀 섹션 -->
+            <div class="h-card text-center mb-8">
+                <h1 class="text-4xl text-primary mb-4 flex items-center justify-center gap-3">
+                    <span data-i18n="calculators.math.statistics.title">통계 계산기</span>
+                    <span>📊</span>
+                </h1>
+                <p class="text-secondary" data-i18n="calculators.math.statistics.description">
+                    데이터의 평균, 중앙값, 표준편차 등 기본 통계량을 계산하고 시각화합니다
+                </p>
+            </div>
+
+            <!-- 통계 계산기 -->
+            <div class="statistics-container">
+                <!-- 데이터 입력 -->
+                <div class="data-input">
+                    <label class="block mb-2 font-medium" data-i18n="calculators.math.statistics.data_input">
+                        데이터 입력
+                    </label>
+                    <textarea id="dataInput" 
+                              data-i18n-placeholder="calculators.math.statistics.data_input_placeholder"
+                              placeholder="숫자를 입력하세요 (쉼표, 공백 또는 줄바꿈으로 구분)"></textarea>
+                    <div class="input-help" data-i18n="calculators.math.statistics.input_help">
+                        예시: 1, 2, 3, 4, 5 또는 1 2 3 4 5
+                    </div>
+                    <div id="errorMessage" class="error-message"></div>
+                </div>
+
+                <!-- 컨트롤 버튼 -->
+                <div class="data-controls">
+                    <button class="control-button" onclick="calculateStatistics()" 
+                            data-i18n="calculators.math.statistics.calculate">계산하기</button>
+                    <button class="control-button secondary" onclick="clearData()"
+                            data-i18n="calculators.math.statistics.clear">초기화</button>
+                    <button class="control-button secondary" onclick="loadSampleData()"
+                            data-i18n="calculators.math.statistics.sample">예제 데이터</button>
+                </div>
+
+                <!-- 결과 섹션 -->
+                <div id="resultsSection" style="display: none;">
+                    <!-- 기본 통계량 -->
+                    <div class="results-grid">
+                        <div class="result-card">
+                            <div class="result-label" data-i18n="calculators.math.statistics.count">데이터 수</div>
+                            <div class="result-value" id="count">0</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label" data-i18n="calculators.math.statistics.mean">평균</div>
+                            <div class="result-value" id="mean">0</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label" data-i18n="calculators.math.statistics.median">중앙값</div>
+                            <div class="result-value" id="median">0</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label" data-i18n="calculators.math.statistics.mode">최빈값</div>
+                            <div class="result-value" id="mode">0</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label" data-i18n="calculators.math.statistics.std">표준편차</div>
+                            <div class="result-value" id="std">0</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label" data-i18n="calculators.math.statistics.variance">분산</div>
+                            <div class="result-value" id="variance">0</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label" data-i18n="calculators.math.statistics.min">최솟값</div>
+                            <div class="result-value" id="min">0</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label" data-i18n="calculators.math.statistics.max">최댓값</div>
+                            <div class="result-value" id="max">0</div>
+                        </div>
+                    </div>
+
+                    <!-- 히스토그램 -->
+                    <div class="chart-section">
+                        <h3 class="chart-title" data-i18n="calculators.math.statistics.histogram">히스토그램</h3>
+                        <div class="chart-container" id="histogram"></div>
+                    </div>
+
+                    <!-- 상자 그림 -->
+                    <div class="chart-section">
+                        <h3 class="chart-title" data-i18n="calculators.math.statistics.boxplot">상자 그림</h3>
+                        <div class="chart-container" id="boxplot"></div>
+                    </div>
+
+                    <!-- 데이터 테이블 -->
+                    <div class="h-card">
+                        <h3 class="text-xl font-semibold mb-4" data-i18n="calculators.math.statistics.data_table">
+                            데이터 테이블
+                        </h3>
+                        <div class="overflow-x-auto">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th data-i18n="calculators.math.statistics.index">순번</th>
+                                        <th data-i18n="calculators.math.statistics.value">값</th>
+                                        <th data-i18n="calculators.math.statistics.frequency">빈도</th>
+                                        <th data-i18n="calculators.math.statistics.percentage">백분율</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dataTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 내보내기 섹션 -->
+                    <div class="export-section">
+                        <h3 class="text-lg font-medium mb-2" data-i18n="calculators.math.statistics.export">결과 내보내기</h3>
+                        <div class="export-options">
+                            <button class="control-button" onclick="exportCSV()"
+                                    data-i18n="calculators.math.statistics.export_csv">CSV 내보내기</button>
+                            <button class="control-button secondary" onclick="copyToClipboard()"
+                                    data-i18n="calculators.math.statistics.copy">클립보드에 복사</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentData = [];
+
+        function parseInput(input) {
+            // 쉼표, 공백, 줄바꿈으로 구분된 숫자를 배열로 변환
+            const numbers = input.trim()
+                .split(/[\s,\n]+/)
+                .filter(x => x.length > 0)
+                .map(x => parseFloat(x));
+
+            // 유효성 검사
+            if (numbers.some(isNaN)) {
+                throw new Error('유효하지 않은 숫자가 포함되어 있습니다');
+            }
+
+            return numbers;
+        }
+
+        function calculateBasicStatistics(data) {
+            return {
+                count: data.length,
+                mean: math.mean(data),
+                median: math.median(data),
+                mode: calculateMode(data),
+                std: math.std(data),
+                variance: math.variance(data),
+                min: math.min(data),
+                max: math.max(data)
+            };
+        }
+
+        function calculateMode(data) {
+            const frequency = {};
+            data.forEach(value => {
+                frequency[value] = (frequency[value] || 0) + 1;
+            });
+
+            let maxFrequency = 0;
+            let modes = [];
+            
+            Object.entries(frequency).forEach(([value, count]) => {
+                if (count > maxFrequency) {
+                    maxFrequency = count;
+                    modes = [value];
+                } else if (count === maxFrequency) {
+                    modes.push(value);
+                }
+            });
+
+            return modes.join(', ');
+        }
+
+        function createHistogramData(data) {
+            // 구간 수 계산 (Sturges' formula)
+            const binCount = Math.ceil(1 + 3.322 * Math.log10(data.length));
+            const min = Math.min(...data);
+            const max = Math.max(...data);
+            const binWidth = (max - min) / binCount;
+
+            // 구간별 빈도 계산
+            const bins = Array(binCount).fill(0);
+            data.forEach(value => {
+                const binIndex = Math.min(
+                    Math.floor((value - min) / binWidth),
+                    binCount - 1
+                );
+                bins[binIndex]++;
+            });
+
+            // 차트 데이터 생성
+            return bins.map((count, i) => ({
+                interval: `${(min + i * binWidth).toFixed(1)} - ${(min + (i + 1) * binWidth).toFixed(1)}`,
+                frequency: count
+            }));
+        }
+
+        function createBoxPlotData(data) {
+            const sorted = [...data].sort((a, b) => a - b);
+            const q1 = math.quantileSeq(sorted, 0.25);
+            const q3 = math.quantileSeq(sorted, 0.75);
+            const iqr = q3 - q1;
+            const lowerWhisker = Math.max(q1 - 1.5 * iqr, sorted[0]);
+            const upperWhisker = Math.min(q3 + 1.5 * iqr, sorted[sorted.length - 1]);
+
+            return [{
+                min: sorted[0],
+                q1: q1,
+                median: math.median(sorted),
+                q3: q3,
+                max: sorted[sorted.length - 1],
+                lowerWhisker,
+                upperWhisker
+            }];
+        }
+
+        function renderHistogram(data) {
+            const histogramData = createHistogramData(data);
+            const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = window.recharts;
+
+            const chartContainer = document.getElementById('histogram');
+            chartContainer.innerHTML = '';
+
+            const chart = React.createElement(ResponsiveContainer, { width: '100%', height: '100%' },
+                React.createElement(BarChart, { data: histogramData },
+                    React.createElement(CartesianGrid, { strokeDasharray: '3 3' }),
+                    React.createElement(XAxis, { dataKey: 'interval', angle: -45, textAnchor: 'end' }),
+                    React.createElement(YAxis),
+                    React.createElement(Tooltip),
+                    React.createElement(Bar, { dataKey: 'frequency', fill: '#2E5CFF' })
+                )
+            );
+
+            ReactDOM.render(chart, chartContainer);
+        }
+
+        function renderBoxPlot(data) {
+            const boxPlotData = createBoxPlotData(data);
+            const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = window.recharts;
+
+            const chartContainer = document.getElementById('boxplot');
+            chartContainer.innerHTML = '';
+
+            const CustomBoxPlot = ({ x, y, data }) => {
+                const boxWidth = 60;
+                const { min, q1, median, q3, max, lowerWhisker, upperWhisker } = data;
+                const scale = d3.scaleLinear()
+                    .domain([Math.min(min, lowerWhisker), Math.max(max, upperWhisker)])
+                    .range([0, height]);
+
+                return React.createElement('g', {},
+                    // Box
+                    React.createElement('rect', {
+                        x: x - boxWidth / 2,
+                        y: scale(q3),
+                        width: boxWidth,
+                        height: scale(q1) - scale(q3),
+                        fill: '#2E5CFF',
+                        opacity: 0.3,
+                        stroke: '#2E5CFF'
+                    }),
+                    // Median line
+                    React.createElement('line', {
+                        x1: x - boxWidth / 2,
+                        x2: x + boxWidth / 2,
+                        y1: scale(median),
+                        y2: scale(median),
+                        stroke: '#2E5CFF',
+                        strokeWidth: 2
+                    }),
+                    // Whiskers
+                    React.createElement('line', {
+                        x1: x,
+                        x2: x,
+                        y1: scale(q3),
+                        y2: scale(upperWhisker),
+                        stroke: '#2E5CFF'
+                    }),
+                    React.createElement('line', {
+                        x1: x,
+                        x2: x,
+                        y1: scale(q1),
+                        y2: scale(lowerWhisker),
+                        stroke: '#2E5CFF'
+                    }),
+                    // Whisker caps
+                    React.createElement('line', {
+                        x1: x - boxWidth / 3,
+                        x2: x + boxWidth / 3,
+                        y1: scale(upperWhisker),
+                        y2: scale(upperWhisker),
+                        stroke: '#2E5CFF'
+                    }),
+                    React.createElement('line', {
+                        x1: x - boxWidth / 3,
+                        x2: x + boxWidth / 3,
+                        y1: scale(lowerWhisker),
+                        y2: scale(lowerWhisker),
+                        stroke: '#2E5CFF'
+                    })
+                );
+            };
+
+            const chart = React.createElement(ResponsiveContainer, { width: '100%', height: '100%' },
+                React.createElement(LineChart, { data: boxPlotData },
+                    React.createElement(CartesianGrid, { strokeDasharray: '3 3' }),
+                    React.createElement(XAxis, { type: 'category', hide: true }),
+                    React.createElement(YAxis),
+                    React.createElement(Tooltip),
+                    React.createElement(CustomBoxPlot, { data: boxPlotData[0] })
+                )
+            );
+
+            ReactDOM.render(chart, chartContainer);
+        }
+
+        function updateDataTable(data) {
+            const frequency = {};
+            data.forEach(value => {
+                frequency[value] = (frequency[value] || 0) + 1;
+            });
+
+            const tableBody = document.getElementById('dataTable');
+            tableBody.innerHTML = Object.entries(frequency)
+                .sort(([a], [b]) => parseFloat(a) - parseFloat(b))
+                .map(([value, count], index) => `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${value}</td>
+                        <td>${count}</td>
+                        <td>${((count / data.length) * 100).toFixed(1)}%</td>
+                    </tr>
+                `).join('');
+        }
+
+        function calculateStatistics() {
+            try {
+                const input = document.getElementById('dataInput').value;
+                currentData = parseInput(input);
+
+                if (currentData.length === 0) {
+                    throw new Error('데이터를 입력해주세요');
+                }
+
+                const stats = calculateBasicStatistics(currentData);
+                
+                // 기본 통계량 업데이트
+                document.getElementById('count').textContent = stats.count;
+                document.getElementById('mean').textContent = stats.mean.toFixed(2);
+                document.getElementById('median').textContent = stats.median.toFixed(2);
+                document.getElementById('mode').textContent = stats.mode;
+                document.getElementById('std').textContent = stats.std.toFixed(2);
+                document.getElementById('variance').textContent = stats.variance.toFixed(2);
+                document.getElementById('min').textContent = stats.min.toFixed(2);
+                document.getElementById('max').textContent = stats.max.toFixed(2);
+
+                // 차트와 테이블 업데이트
+                renderHistogram(currentData);
+                renderBoxPlot(currentData);
+                updateDataTable(currentData);
+
+                // 결과 섹션 표시
+                document.getElementById('resultsSection').style.display = 'block';
+                document.getElementById('errorMessage').textContent = '';
+
+            } catch (error) {
+                document.getElementById('errorMessage').textContent = error.message;
+                document.getElementById('resultsSection').style.display = 'none';
+            }
+        }
+
+        function clearData() {
+            document.getElementById('dataInput').value = '';
+            document.getElementById('errorMessage').textContent = '';
+            document.getElementById('resultsSection').style.display = 'none';
+            currentData = [];
+        }
+
+        function loadSampleData() {
+            const sampleData = "23, 45, 67, 34, 89, 56, 78, 90, 45, 23, 67, 89, 45, 67, 34, 56, 78, 90, 23, 45";
+            document.getElementById('dataInput').value = sampleData;
+            calculateStatistics();
+        }
+
+        function exportCSV() {
+            if (currentData.length === 0) return;
+
+            const rows = [
+                ['값', '빈도', '백분율'],
+                ...Object.entries(calculateFrequency(currentData))
+                    .map(([value, count]) => [
+                        value,
+                        count,
+                        ((count / currentData.length) * 100).toFixed(1) + '%'
+                    ])
+            ];
+
+            const csvContent = rows
+                .map(row => row.join(','))
+                .join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'statistics_result.csv';
+            link.click();
+        }
+
+        function calculateFrequency(data) {
+            const frequency = {};
+            data.forEach(value => {
+                frequency[value] = (frequency[value] || 0) + 1;
+            });
+            return frequency;
+        }
+
+        function copyToClipboard() {
+            if (currentData.length === 0) return;
+
+            const stats = calculateBasicStatistics(currentData);
+            const text = `통계 분석 결과\n
+데이터 수: ${stats.count}
+평균: ${stats.mean.toFixed(2)}
+중앙값: ${stats.median.toFixed(2)}
+최빈값: ${stats.mode}
+표준편차: ${stats.std.toFixed(2)}
+분산: ${stats.variance.toFixed(2)}
+최솟값: ${stats.min.toFixed(2)}
+최댓값: ${stats.max.toFixed(2)}`;
+
+            navigator.clipboard.writeText(text)
+                .then(() => alert('클립보드에 복사되었습니다.'))
+                .catch(err => console.error('클립보드 복사 실패:', err));
+        }
+
+        // 키보드 이벤트 처리
+        document.getElementById('dataInput').addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && event.ctrlKey) {
+                calculateStatistics();
+            }
+        });
+    </script>
+</body>
+</html>
